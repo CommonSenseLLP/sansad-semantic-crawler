@@ -4,3 +4,16 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+
+  # In-org packages only — commoner-probe is this package's one runtime
+  # dependency, declared in pyproject.toml.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-name: "commoner-probe"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
