@@ -11,6 +11,17 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.4.0] — 2026-08-17
+
+Two live defects, found while porting a guard against a third. All three are
+the same failure: a hand-copied vocabulary drifts wherever it was pasted, and
+no behaviour test can see it, because every copy is internally consistent.
+
+Minor rather than patch: `tiers.py` is a new public module and the summary
+rows gain two fields. **Both fixes move published numbers**, and they move them
+toward the correct value — re-run `mp-dossier`, `ministry-dossier` and
+`analyse-weights` on any corpus carrying the affected labels.
+
 ### Fixed
 
 - **Every dossier under-counted evasion.** `dossier.py` kept its own copy of
@@ -817,7 +828,8 @@ between `discourse.py` and `classifiers/llm.py`, hand-pinned
 - `manifest.jsonl` and `analysis.jsonl` canonical schemas.
 - Resume-safe crawling via per-record stable keys.
 
-[Unreleased]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.0.0...v2.1.0
