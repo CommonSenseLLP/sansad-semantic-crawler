@@ -167,6 +167,28 @@ Downstream commands compose these layers rather than recomputing them:
 - `build-graph` indexes them in SQLite
 - the dossier commands turn them into Markdown briefings
 
+## Versioning and stability
+
+**Pin an exact tag. Do not use a version range.**
+
+This package follows Semantic Versioning, and the version number is a
+continuous lineage rather than a maturity grade. The `2.x` series counts
+forward from the repo's pre-rename life as `sansad-semantic-crawler`, which
+reached `v1.0.0` five days after its first commit. Read the number as a
+position in that lineage, not as a claim that the API has settled.
+
+What that means in practice:
+
+- **The JSONL output schema gains fields in minor releases.** `v2.4.0` added
+  two. Read the field you need by name and ignore the rest.
+- **A bug fix can move a published number.** `v2.4.0` corrected two label sets
+  that were counting evasion and MP weights wrongly. Under SemVer that is a
+  fix, not a break, so it shipped in a minor. Re-run your pipeline after a
+  minor upgrade rather than assuming the output is unchanged.
+- **Nothing is removed or renamed without a major.** That part of the SemVer
+  contract holds.
+- **`CHANGELOG.md` is the contract.** Read the entry before you move a pin.
+
 ## Install
 
 The package is not on PyPI yet (publication is planned for a future

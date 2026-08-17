@@ -87,8 +87,29 @@ This is a published package with downstream consumers (`theright2read`,
 - **Patch** — fixes and docs, no API change. **Minor** — backwards-compatible
   additions, deprecation warnings before removal. **Major** — breaking change,
   explicit user decision.
-- Do not rename CLI flags, change output schema fields, or alter the JSONL
-  manifest structure in a patch or minor release.
+- **Do not rename or remove a CLI flag, an output schema field, or a JSONL
+  manifest field outside a major release.** Adding a field is a minor, and
+  `v2.4.0` added two. A consumer must read the fields it needs by name and
+  tolerate ones it does not know.
+- **A fix may move a published number inside a minor.** `v2.4.0` corrected two
+  drifted label sets, so evasion counts and MP weights both changed. SemVer
+  calls that a fix. Say so at the top of the changelog entry, and tell
+  consumers to re-run rather than assume.
+- **The version is a lineage, not a maturity grade.** The `2.x` series counts
+  forward from the pre-rename repo, which hit `v1.0.0` five days in. It cannot
+  return to `0.x`, because `v0.1.0` through `v1.1.0` are already tagged. The
+  stability caveat therefore lives in prose — see `README.md`'s "Versioning and
+  stability" — not in the number.
+- **Stay on `2.x` for a long time.** Commoner's decision, 2026-08-17. A major
+  bump costs every downstream repo a migration, and this repo has spent three
+  majors in four months already. Operationally:
+  - Add. Do not replace. A new field, flag or module beside the old one is a
+    minor. Swapping one for another is a major, so do not swap.
+  - Deprecate in place. Keep the old name working and warn. Removal waits for
+    a major that may be years away.
+  - A break that looks unavoidable is a design question first. Bring it to
+    Commoner before the version question.
+  - `3.0.0` needs Commoner's explicit decision. Nothing else authorises it.
 - `session` is `"ls"` | `"rs"` only. `year` is the YYYY-YY financial year.
   `probed_at` is the source-of-truth timestamp; `crawled_at` is a
   backwards-compatibility alias and both should be present.
