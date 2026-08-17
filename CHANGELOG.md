@@ -11,6 +11,52 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-08-17
+
+Twenty commits since `v2.2.0`, none of them released. Downstream pins to a tag,
+so every fix below has been invisible to `theright2read` and `academiaindia`
+since 2026-07-08. That is the reason for the release; the size of the surface
+is the reason it takes the minor slot rather than the patch slot.
+
+### Added
+
+- **`roster.py` — grounded committee-roster extraction.** A new importable
+  module. An LLM (via `langextract`, the `llm` extra) only spots person
+  entities and vacancy markers with char-level spans. Everything structural —
+  house, section, ordering — is derived deterministically from span position
+  against the section headers, never from an LLM attribute, because small local
+  models flip a section label mid-list while their spans stay exact. An
+  ungrounded extraction (`char_interval is None`) is dropped and counted; that
+  channel is where few-shot leakage and invented names arrive. Not wired into
+  the CLI yet.
+- **The `llm` extra now installs something.** It was an empty list; it is now
+  `langextract>=1.6`.
+- **`scripts/langextract_pilot.py`** — the pilot behind `roster.py`, with a
+  model override and per-model output files, so two models can be compared on
+  one report.
+- **`allow_private` in a topic profile's `classifier` block.** Set it `false`
+  to reject loopback, private and link-local hosts. See the SSRF fix below.
+
+### Changed
+
+- **`commoner-probe` is pinned exactly, and the pin moved `0.8.0` → `0.14.3`**
+  across nine releases (#70–#76 and their predecessors), with Dependabot
+  watching it. The org rule requires `==` on a runtime dependency; the old
+  `>=0.7.0` floor let a consumer resolve a probe this repo had never been run
+  against. These bumps reached `main` without changelog entries. This entry is
+  the record.
+
+  **Not taken: `0.14.4` and `0.14.5`.** Those two silently dropped question and
+  answer text when enumerating a Lok Sabha session before August 2015.
+  `commoner-probe` `0.14.6` fixes it. This repo never pinned either, so no run
+  from here is affected. Moving the pin to `0.14.6` is a separate change and is
+  not in this release.
+
+- **Consolidated the duplicated LLM HTTP layer.** `discourse.py`'s and
+  `dossier.py`'s near-identical SSRF-guarded endpoint validation, API-key
+  resolution, chat-completions POST, and tolerant JSON parsing now live once,
+  in `llm_client.py`.
+
 ### Fixed
 
 - **Topic classifier's `llm` mode (`classifiers/llm.py`) had no SSRF guard.**
@@ -53,13 +99,6 @@ researchers who pin a tag and want to know what they are pinning to.
   windows against `context["date"]`.
 - **`CONTRIBUTING.md` said Python 3.11/3.12/3.13 required**, excluding 3.10
   even though `pyproject.toml` and CI both support it.
-
-### Changed
-
-- **Consolidated the duplicated LLM HTTP layer.** `discourse.py`'s and
-  `dossier.py`'s near-identical SSRF-guarded endpoint validation, API-key
-  resolution, chat-completions POST, and tolerant JSON parsing now live once,
-  in `llm_client.py`.
 
 ## [2.2.0] — 2026-07-06
 
@@ -709,7 +748,9 @@ between `discourse.py` and `classifiers/llm.py`, hand-pinned
 - `manifest.jsonl` and `analysis.jsonl` canonical schemas.
 - Resume-safe crawling via per-record stable keys.
 
-[Unreleased]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.2.0...v2.3.0
+[2.2.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/CommonerLLP/commoner-analyse/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/CommonerLLP/commoner-analyse/releases/tag/v1.1.0
