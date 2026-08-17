@@ -58,6 +58,55 @@ class DiscourseSummaryTests(unittest.TestCase):
             self.assertIsNone(summary["evasionRateClassified"])
 
 
+class ExportTierGuardTests(unittest.TestCase):
+    """The export is what a downstream site reads, so the guard must reach it.
+
+    `tiers.py` protects `mp_summary.jsonl` and `ministry_summary_*.jsonl`. Until
+    2026-08-17 the export published `evasionRateClassified` with no
+    publishability verdict at all, so a consumer reading only the export could
+    not tell whether the rate was safe to quote.
+    """
+
+    def test_export_reports_the_tiers_behind_the_rate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            _write_jsonl(out / "manifest.jsonl", [{"key": f"k{i}"} for i in range(2)])
+            _write_jsonl(out / "analysis_discourse.jsonl", [
+                {"key": "k1", "label": "DEFLECTED", "classifier": "regex_v2"},
+                {"key": "k2", "label": "ACCEPTED", "classifier": "regex_v2"},
+            ])
+            summary = build_discourse_summary(out)
+            self.assertEqual(summary["tiersSeen"], {"regex_v2": 2})
+            self.assertTrue(summary["ratePublishable"])
+
+    def test_an_unregistered_tier_marks_the_rate_unpublishable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            _write_jsonl(out / "manifest.jsonl", [{"key": "k1"}])
+            _write_jsonl(out / "analysis_discourse.jsonl", [
+                {"key": "k1", "label": "DEFLECTED", "classifier": "mystery_v1"},
+            ])
+            summary = build_discourse_summary(out)
+            self.assertFalse(summary["ratePublishable"])
+
+    def test_an_unclassified_row_does_not_make_the_rate_unpublishable(self):
+        """An UNCLASSIFIED row is on neither side of the rate.
+
+        Counting its tier would mark the rate unpublishable over a tier that
+        never touched it, and an unclassified row is the normal case.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            _write_jsonl(out / "manifest.jsonl", [{"key": f"k{i}"} for i in range(2)])
+            _write_jsonl(out / "analysis_discourse.jsonl", [
+                {"key": "k1", "label": "DEFLECTED", "classifier": "regex_v2"},
+                {"key": "k2", "label": "UNCLASSIFIED"},
+            ])
+            summary = build_discourse_summary(out)
+            self.assertEqual(summary["tiersSeen"], {"regex_v2": 1})
+            self.assertTrue(summary["ratePublishable"])
+
+
 class MinistryDiscourseTests(unittest.TestCase):
 
     def test_returns_none_when_ministry_summary_missing(self):

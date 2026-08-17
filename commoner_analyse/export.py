@@ -9,6 +9,7 @@ from typing import Any
 from .aggregations import label_function, _EVASIVE, _SUBSTANTIVE
 from .discourse import DISCOURSE_LABEL_DESCRIPTIONS
 from .textparse import read_jsonl
+from .tiers import rate_publishable
 from .topics import TopicProfile
 
 
@@ -63,6 +64,14 @@ def build_discourse_summary(out_dir: Path) -> dict[str, Any] | None:
     evasive = sum(c for lab, c in labels.items() if lab in _EVASIVE)
     substantive = sum(c for lab, c in labels.items() if lab in _SUBSTANTIVE)
     classified = evasive + substantive
+    # Only a row that feeds the rate contributes its tier. An UNCLASSIFIED row
+    # is on neither side of the rate, so counting its tier would mark the rate
+    # unpublishable over a tier that never touched it.
+    tiers = Counter(
+        row.get("classifier") or "unknown"
+        for row in discourse
+        if label_function(row.get("label")) != "unclassified"
+    )
     return {
         "questionsTotal": manifest_total,
         "responsesExtracted": len(discourse),
@@ -71,6 +80,8 @@ def build_discourse_summary(out_dir: Path) -> dict[str, Any] | None:
         "substantiveCount": substantive,
         "evasionRateClassified": round(evasive / classified, 4) if classified else None,
         "labelDistribution": dict(labels.most_common()),
+        "tiersSeen": dict(tiers),
+        "ratePublishable": rate_publishable(tiers),
     }
 
 
@@ -92,6 +103,8 @@ def build_ministry_discourse(out_dir: Path) -> list[dict[str, Any]] | None:
             "evasionRateClassified": row.get("evasion_rate_classified"),
             "labelDistribution": row.get("label_distribution", {}),
             "perEvasionShare": row.get("per_evasion_label_share", {}),
+            "tiersSeen": row.get("tiers_seen", {}),
+            "ratePublishable": row.get("rate_publishable"),
         }
         for row in sorted(rows, key=lambda r: -r.get("records_total", 0))
     ]
