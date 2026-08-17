@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .aggregations import _classify_label, _EVASIVE, _SUBSTANTIVE
+from .aggregations import label_function, _EVASIVE, _SUBSTANTIVE
 from .discourse import DISCOURSE_LABEL_DESCRIPTIONS
 from .textparse import read_jsonl
 from .topics import TopicProfile
@@ -29,7 +29,7 @@ def build_glossary() -> dict[str, Any]:
     return {
         "generatedAt": now(),
         "labels": [
-            {"label": label, "description": description, "function": _classify_label(label)}
+            {"label": label, "description": description, "function": label_function(label)}
             for label, description in DISCOURSE_LABEL_DESCRIPTIONS.items()
         ],
     }

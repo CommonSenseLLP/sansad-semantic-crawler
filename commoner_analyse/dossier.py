@@ -28,6 +28,10 @@ from pathlib import Path
 from typing import Any, Callable
 
 from . import llm_client
+# The substantive/evasive split has one source: aggregations.py. Do not copy
+# it here — tests/test_tiers.py fails on a second definition anywhere in the
+# package.
+from .aggregations import label_function as _classify_label
 
 DOSSIER_VERSION = "mp_dossier_v1"
 QUESTION_REFINE_VERSION = "question_refine_v1"
@@ -1398,22 +1402,6 @@ class _TopicGroup:
     samples_substantive: list[dict] = field(default_factory=list)
 
 
-_SUBSTANTIVE = frozenset({"ACCEPTED", "REJECTED", "FACTUAL_DISCLOSURE"})
-_EVASIVE = frozenset({
-    "DEFLECTED", "ABSORBED", "SUBSTITUTED",
-    "DATA_WITHHELD", "SCOPE_NARROWED", "CIRCULAR_REFERENCE",
-    "CONSTITUTIONAL_DEFAULT",
-})
-
-
-def _classify_label(label: str | None) -> str:
-    if not label or label == "UNCLASSIFIED":
-        return "unclassified"
-    if label in _SUBSTANTIVE:
-        return "substantive"
-    if label in _EVASIVE:
-        return "evasive"
-    return "unclassified"
 
 
 def _render_dossier(

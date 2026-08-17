@@ -80,16 +80,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .aggregations import _EVASIVE, _SUBSTANTIVE
 from .runlog import topic_hash
 
 WEIGHTING_VERSION = "discourse_v0.5.0_bayesian_shrinkage"
 
-# Discourse-label categorisation. Locked vocabulary — see ``discourse.py``.
-SUBSTANTIVE_LABELS: frozenset[str] = frozenset({"ACCEPTED", "REJECTED"})
-EVASIVE_LABELS: frozenset[str] = frozenset({
-    "DEFLECTED", "ABSORBED", "SUBSTITUTED",
-    "DATA_WITHHELD", "SCOPE_NARROWED", "CIRCULAR_REFERENCE",
-})
+# Aliases, not a definition. The split has one source: aggregations.py. A
+# label in neither set counts toward neither term of `raw_weight` and neither
+# term of `effective_n`, so a copy that falls behind the taxonomy silently
+# shrinks both. Do not redefine these — tests/test_tiers.py fails on a second
+# definition anywhere in the package.
+SUBSTANTIVE_LABELS: frozenset[str] = _SUBSTANTIVE
+EVASIVE_LABELS: frozenset[str] = _EVASIVE
 
 # Bayesian shrinkage strength. Higher = more aggressive pull toward
 # party prior for small samples. n0=10 means a person with 10
