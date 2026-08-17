@@ -28,11 +28,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from . import llm_client
-# The substantive/evasive split has ONE source: aggregations.py. This module
-# held a copy until 2026-08-17, and the copy drifted. It never took the
-# Instrumented Discourse Tier v2 labels that aggregations.py gained on
-# 2026-07-06, so every dossier counted FEDERAL_DEFLECTION, STRUCTURAL_REFUSAL
-# and REPRESENTATIONAL_SILENCE as unclassified rather than evasive.
+# The substantive/evasive split has one source: aggregations.py. Do not copy
+# it here — tests/test_tiers.py fails on a second definition anywhere in the
+# package.
 from .aggregations import label_function as _classify_label
 
 DOSSIER_VERSION = "mp_dossier_v1"

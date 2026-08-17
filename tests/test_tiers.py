@@ -17,6 +17,7 @@ module, and each one exists because a hand-kept registry drifted:
 from __future__ import annotations
 
 import ast
+import json
 from pathlib import Path
 
 import pytest
@@ -24,9 +25,9 @@ import pytest
 from commoner_analyse import discourse, tiers
 from commoner_analyse.aggregations import _EVASIVE, _SUBSTANTIVE, label_function
 from commoner_analyse.tiers import (
-    BOTH,
+    BOTH_FAMILIES,
     TIER_CAPABILITY,
-    Row,
+    DiscourseRow,
     outcome_rate,
     rate_publishable,
     two_sided,
@@ -69,7 +70,7 @@ def test_declared_capability_matches_the_taxonomy():
     families = {label_function(name) for name in reachable}
     assert "substantive" in families
     assert "evasive" in families
-    assert TIER_CAPABILITY[discourse.CLASSIFIER_VERSION] == BOTH
+    assert TIER_CAPABILITY[discourse.CLASSIFIER_VERSION] == BOTH_FAMILIES
 
     # The LLM tier accepts any label in the taxonomy, so its capability is the
     # taxonomy's own span.
@@ -77,7 +78,7 @@ def test_declared_capability_matches_the_taxonomy():
         label_function(name) for name in discourse.DISCOURSE_LABEL_DESCRIPTIONS
     }
     assert {"substantive", "evasive"} <= llm_families
-    assert TIER_CAPABILITY[discourse.LLM_CLASSIFIER_VERSION] == BOTH
+    assert TIER_CAPABILITY[discourse.LLM_CLASSIFIER_VERSION] == BOTH_FAMILIES
 
 
 def test_the_substantive_evasive_split_has_one_source():
@@ -146,7 +147,7 @@ def test_rate_publishable_fails_closed_on_an_unknown_tier():
 
 
 def _row(key, label, conf=0.9, clf=None):
-    return Row(key=key, label=label, confidence=conf,
+    return DiscourseRow(key=key, label=label, confidence=conf,
                classifier=clf or discourse.CLASSIFIER_VERSION)
 
 
@@ -182,9 +183,9 @@ def test_a_null_confidence_row_does_not_raise():
 
     A `dfg_recommendation_passthrough` row is a committee ask with no response
     yet. It carries a real classifier, so it passes the capability gate. A
-    caller building Row(**row) straight from the file must not hit a TypeError.
+    caller building DiscourseRow(**row) straight from the file must not hit a TypeError.
     """
-    rows = [Row(key="a", label=None, confidence=None,
+    rows = [DiscourseRow(key="a", label=None, confidence=None,
                 classifier=discourse.CLASSIFIER_VERSION)]
     rate = outcome_rate(rows, min_n=1)
     assert rate.n == 0
@@ -237,7 +238,6 @@ def test_a_tie_that_agrees_still_counts():
 
 
 def _corpus(tmp_path, manifest_rows, discourse_rows):
-    import json
     (tmp_path / "manifest.jsonl").write_text(
         "\n".join(json.dumps(r) for r in manifest_rows), encoding="utf-8")
     (tmp_path / "analysis_discourse.jsonl").write_text(
@@ -246,7 +246,6 @@ def _corpus(tmp_path, manifest_rows, discourse_rows):
 
 
 def _first_row(path):
-    import json
     return json.loads(path.read_text(encoding="utf-8").splitlines()[0])
 
 

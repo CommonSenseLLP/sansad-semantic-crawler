@@ -31,9 +31,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterable
 
-SUBSTANTIVE_ONLY = frozenset({"substantive"})
-EVASIVE_ONLY = frozenset({"evasive"})
-BOTH = frozenset({"substantive", "evasive"})
+BOTH_FAMILIES = frozenset({"substantive", "evasive"})
 
 # What each tier is CAPABLE of emitting — not what it happened to emit on one
 # corpus. An absent tier is refused, never assumed two-sided: assuming
@@ -43,13 +41,13 @@ BOTH = frozenset({"substantive", "evasive"})
 # written before the v2 taxonomy carry them, and a corpus is read years after
 # it is written. Both tiers reached both families in v1 as well.
 TIER_CAPABILITY: dict[str, frozenset[str]] = {
-    "regex_v1": BOTH,
-    "regex_v2": BOTH,
-    "llm_discourse_v1": BOTH,
-    "llm_discourse_v2": BOTH,
+    "regex_v1": BOTH_FAMILIES,
+    "regex_v2": BOTH_FAMILIES,
+    "llm_discourse_v1": BOTH_FAMILIES,
+    "llm_discourse_v2": BOTH_FAMILIES,
 }
 
-ONE_SIDED_TIERS = frozenset(t for t, f in TIER_CAPABILITY.items() if f != BOTH)
+ONE_SIDED_TIERS = frozenset(t for t, f in TIER_CAPABILITY.items() if f != BOTH_FAMILIES)
 
 # A pass may name itself one thing and be stored under another. The mapping
 # lives here rather than as a second registry entry, because two names both
@@ -69,7 +67,7 @@ def tier_families(classifier: str) -> frozenset[str]:
 
 def two_sided(classifier: str) -> bool:
     """True only for a tier that could have returned either family."""
-    return tier_families(classifier) == BOTH
+    return tier_families(classifier) == BOTH_FAMILIES
 
 
 def rate_publishable(classifiers: Iterable[str]) -> bool:
@@ -84,13 +82,13 @@ def rate_publishable(classifiers: Iterable[str]) -> bool:
 
 
 @dataclass(frozen=True)
-class Row:
+class DiscourseRow:
     """One discourse row, as stored in ``analysis_discourse.jsonl``.
 
     ``label`` and ``confidence`` are both optional, because the file carries
     rows where they are null. A ``dfg_recommendation_passthrough`` row is a
     committee ask with no response yet: it holds a real ``classifier`` and a
-    null label. Such a row must not raise when a caller builds ``Row(**row)``
+    null label. Such a row must not raise when a caller builds ``DiscourseRow(**row)``
     straight from the file, so ``outcome_rate`` treats a null confidence as
     below any floor.
     """
@@ -135,7 +133,7 @@ class OutcomeRate:
 
 
 def outcome_rate(
-    rows: Iterable[Row],
+    rows: Iterable[DiscourseRow],
     *,
     min_confidence: float = 0.7,
     min_n: int = 30,
@@ -164,7 +162,7 @@ def outcome_rate(
     from .aggregations import label_function
 
     excluded: dict[str, int] = {}
-    eligible: dict[str, list[Row]] = {}
+    eligible: dict[str, list[DiscourseRow]] = {}
 
     def drop(reason: str) -> None:
         excluded[reason] = excluded.get(reason, 0) + 1

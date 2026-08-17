@@ -85,13 +85,11 @@ from .runlog import topic_hash
 
 WEIGHTING_VERSION = "discourse_v0.5.0_bayesian_shrinkage"
 
-# Discourse-label categorisation. ONE source: aggregations.py.
-#
-# This module held its own copy until 2026-08-17, under a comment claiming the
-# vocabulary was locked. It was not. The copy was missing FACTUAL_DISCLOSURE
-# from the substantive side and all four Instrumented Discourse Tier v2 labels
-# from the evasive side, so five labels counted toward neither side of
-# `raw_weight` and toward neither term of `effective_n`.
+# Aliases, not a definition. The split has one source: aggregations.py. A
+# label in neither set counts toward neither term of `raw_weight` and neither
+# term of `effective_n`, so a copy that falls behind the taxonomy silently
+# shrinks both. Do not redefine these — tests/test_tiers.py fails on a second
+# definition anywhere in the package.
 SUBSTANTIVE_LABELS: frozenset[str] = _SUBSTANTIVE
 EVASIVE_LABELS: frozenset[str] = _EVASIVE
 

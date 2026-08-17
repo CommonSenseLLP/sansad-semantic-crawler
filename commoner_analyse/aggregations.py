@@ -83,11 +83,13 @@ def _topic_hash(topic_profile_path: Path | None) -> str | None:
 
 
 def label_function(label: str | None) -> str:
-    """Return ``'substantive'`` | ``'evasive'`` | ``'unclassified'``.
+    """Return the rhetorical function of a discourse label.
 
-    The single source of the split for the whole package. ``dossier.py`` and
-    ``export.py`` both read it here. Neither keeps a copy: ``dossier.py`` did
-    until 2026-08-17, and its copy silently drifted by three labels.
+    One of ``'substantive'``, ``'evasive'`` or ``'unclassified'``. This is the
+    single source of the split for the whole package: ``dossier.py``,
+    ``export.py`` and ``weighting.py`` all read it here rather than keeping a
+    copy. An unrecognised label is ``'unclassified'``, which is the
+    conservative reading — it enters neither side of an evasion rate.
     """
     if not label or label == "UNCLASSIFIED":
         return "unclassified"
@@ -102,19 +104,16 @@ def label_function(label: str | None) -> str:
 _classify_label = label_function
 
 
-def _count_tier(bucket: dict[str, Any], discourse_row: dict, label: str) -> None:
-    """Record the tier behind a label, but only when the label feeds a rate.
-
-    A record with no discourse row, or one the classifier left UNCLASSIFIED,
-    contributes to neither side of ``evasion_rate_classified``. Counting its
-    tier would put a sentinel into ``tiers_seen`` and make ``rate_publishable``
-    read False on a rate that no unknown tier touched. A missing discourse row
-    is the normal case, not an edge case: ``analyse-discourse`` reads
-    ``answers.jsonl`` and skips a record whose answer text is empty.
-    """
+def _count_tier(group: dict[str, Any], discourse_row: dict, label: str) -> None:
+    # Only a label that feeds the rate contributes its tier. A record with no
+    # discourse row, or one left UNCLASSIFIED, is on neither side of
+    # evasion_rate_classified, so counting its tier would mark the rate
+    # unpublishable over a tier that never touched it. Such a record is the
+    # normal case: analyse-discourse reads answers.jsonl and skips an empty
+    # answer.
     if label_function(label) == "unclassified":
         return
-    bucket["tiers"][discourse_row.get("classifier") or "unknown"] += 1
+    group["tiers"][discourse_row.get("classifier") or "unknown"] += 1
 
 
 # ---------------------------------------------------------------------------
