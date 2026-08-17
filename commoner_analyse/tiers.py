@@ -85,11 +85,19 @@ def rate_publishable(classifiers: Iterable[str]) -> bool:
 
 @dataclass(frozen=True)
 class Row:
-    """One discourse row, as stored in ``analysis_discourse.jsonl``."""
+    """One discourse row, as stored in ``analysis_discourse.jsonl``.
+
+    ``label`` and ``confidence`` are both optional, because the file carries
+    rows where they are null. A ``dfg_recommendation_passthrough`` row is a
+    committee ask with no response yet: it holds a real ``classifier`` and a
+    null label. Such a row must not raise when a caller builds ``Row(**row)``
+    straight from the file, so ``outcome_rate`` treats a null confidence as
+    below any floor.
+    """
 
     key: str
-    label: str
-    confidence: float
+    label: str | None
+    confidence: float | None
     classifier: str
 
 
@@ -142,6 +150,14 @@ def outcome_rate(
     Filtering it first lets a record the strongest tier REFUSED to call be
     decided by a weaker tier that did call it. Every such override lands on the
     benign side, which is the failure the guard exists to prevent.
+
+    **``excluded`` mixes two units, and it must.** ``one_sided_tier``,
+    ``unregistered_tier`` and ``below_confidence`` count ROWS.
+    ``tied_conflict`` and ``top_unclassified`` count RECORDS. A record can
+    also lose a row to the first group and still reach ``n`` through another
+    tier. So ``excluded`` does not reconcile against ``n`` in either
+    direction. It says what was refused and why, not what the denominator
+    would otherwise have been.
     """
     # Deferred: aggregations.py owns the split and imports this module for the
     # guard, so a module-level import here would close the cycle.
@@ -158,7 +174,7 @@ def outcome_rate(
             drop("one_sided_tier" if canonical_tier(row.classifier) in ONE_SIDED_TIERS
                  else "unregistered_tier")
             continue
-        if row.confidence < min_confidence:
+        if row.confidence is None or row.confidence < min_confidence:
             drop("below_confidence")
             continue
         eligible.setdefault(row.key, []).append(row)

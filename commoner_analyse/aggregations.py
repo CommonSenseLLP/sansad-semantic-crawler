@@ -102,6 +102,21 @@ def label_function(label: str | None) -> str:
 _classify_label = label_function
 
 
+def _count_tier(bucket: dict[str, Any], discourse_row: dict, label: str) -> None:
+    """Record the tier behind a label, but only when the label feeds a rate.
+
+    A record with no discourse row, or one the classifier left UNCLASSIFIED,
+    contributes to neither side of ``evasion_rate_classified``. Counting its
+    tier would put a sentinel into ``tiers_seen`` and make ``rate_publishable``
+    read False on a rate that no unknown tier touched. A missing discourse row
+    is the normal case, not an edge case: ``analyse-discourse`` reads
+    ``answers.jsonl`` and skips a record whose answer text is empty.
+    """
+    if label_function(label) == "unclassified":
+        return
+    bucket["tiers"][discourse_row.get("classifier") or "unknown"] += 1
+
+
 # ---------------------------------------------------------------------------
 # MP summary
 # ---------------------------------------------------------------------------
@@ -137,6 +152,11 @@ def write_mp_summary(
       ``unclassified_count`` derived rollup
     * ``evasion_rate_classified`` — `evasive / (substantive +
       evasive)`, ``None`` if no classified records
+    * ``tiers_seen`` — which classifier tiers produced the labels that
+      feed the rate. An unclassified record contributes to neither side
+      of the rate, so its tier is not counted here.
+    * ``rate_publishable`` — False when any contributing tier is
+      one-sided or unregistered. See ``tiers.py``.
     """
     stats = MpSummaryStats()
     manifest = _read_jsonl(out_dir / "manifest.jsonl")
@@ -209,7 +229,7 @@ def write_mp_summary(
             drow = discourse_by_key.get(rec.get("key", ""), {})
             label = drow.get("label") or "UNCLASSIFIED"
             actor["label_distribution"][label] += 1
-            actor["tiers"][drow.get("classifier") or "unknown"] += 1
+            _count_tier(actor, drow, label)
 
     th = _topic_hash(topic_profile_path)
     out_rows: list[dict] = []
@@ -295,6 +315,11 @@ def write_ministry_summary(
     * ``per_evasion_label_share`` — what fraction of evasive labels are
       DEFLECTED vs DATA_WITHHELD vs SUBSTITUTED, etc. The *grammar* of
       the evasion, not just its rate.
+    * ``tiers_seen`` — which classifier tiers produced the labels that
+      feed the rate. An unclassified record contributes to neither side
+      of the rate, so its tier is not counted here.
+    * ``rate_publishable`` — False when any contributing tier is
+      one-sided or unregistered. See ``tiers.py``.
     * For committee channel: a list of ``rejected_recommendation_keys``
       so a researcher can trace specific recommendations the ministry
       refused.
@@ -341,7 +366,7 @@ def write_ministry_summary(
             g = qa_groups.setdefault(ministry, _new_group("ministry", ministry))
             g["records_total"] += 1
             g["label_distribution"][lab] += 1
-            g["tiers"][d.get("classifier") or "unknown"] += 1
+            _count_tier(g, d, lab)
             if d.get("passive_ratio") is not None:
                 g["voice_rows"] += 1
                 g["passive_ratio_sum"] += float(d.get("passive_ratio") or 0.0)
@@ -357,7 +382,7 @@ def write_ministry_summary(
             g.setdefault("house", house_prefix)
             g["records_total"] += 1
             g["label_distribution"][lab] += 1
-            g["tiers"][d.get("classifier") or "unknown"] += 1
+            _count_tier(g, d, lab)
             if d.get("passive_ratio") is not None:
                 g["voice_rows"] += 1
                 g["passive_ratio_sum"] += float(d.get("passive_ratio") or 0.0)

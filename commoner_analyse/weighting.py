@@ -80,16 +80,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .aggregations import _EVASIVE, _SUBSTANTIVE
 from .runlog import topic_hash
 
 WEIGHTING_VERSION = "discourse_v0.5.0_bayesian_shrinkage"
 
-# Discourse-label categorisation. Locked vocabulary — see ``discourse.py``.
-SUBSTANTIVE_LABELS: frozenset[str] = frozenset({"ACCEPTED", "REJECTED"})
-EVASIVE_LABELS: frozenset[str] = frozenset({
-    "DEFLECTED", "ABSORBED", "SUBSTITUTED",
-    "DATA_WITHHELD", "SCOPE_NARROWED", "CIRCULAR_REFERENCE",
-})
+# Discourse-label categorisation. ONE source: aggregations.py.
+#
+# This module held its own copy until 2026-08-17, under a comment claiming the
+# vocabulary was locked. It was not. The copy was missing FACTUAL_DISCLOSURE
+# from the substantive side and all four Instrumented Discourse Tier v2 labels
+# from the evasive side, so five labels counted toward neither side of
+# `raw_weight` and toward neither term of `effective_n`.
+SUBSTANTIVE_LABELS: frozenset[str] = _SUBSTANTIVE
+EVASIVE_LABELS: frozenset[str] = _EVASIVE
 
 # Bayesian shrinkage strength. Higher = more aggressive pull toward
 # party prior for small samples. n0=10 means a person with 10

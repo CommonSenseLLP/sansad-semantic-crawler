@@ -86,18 +86,41 @@ def test_the_substantive_evasive_split_has_one_source():
     `dossier.py` kept one and it drifted by three labels. A copy is not caught
     by any behaviour test, because each copy is internally consistent.
     """
-    owners: list[str] = []
+    # Match on the CONTENTS, not the variable name. A copy called
+    # EVASIVE_LABELS is the plausible thing for the next author to write, and a
+    # name-bound check would not see it. `ast.AnnAssign` is walked too, because
+    # `_EVASIVE: frozenset[str] = frozenset({...})` is not an `ast.Assign`.
+    known = _SUBSTANTIVE | _EVASIVE
+    owners: dict[str, list[str]] = {}
+
+    def _literal_strings(node: ast.AST) -> set[str]:
+        return {
+            n.value for n in ast.walk(node)
+            if isinstance(n, ast.Constant) and isinstance(n.value, str)
+        }
+
     for path in sorted(PACKAGE.rglob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
-            if not isinstance(node, ast.Assign):
+            if isinstance(node, ast.Assign):
+                names = [t.id for t in node.targets if isinstance(t, ast.Name)]
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                names = [node.target.id]
+            else:
                 continue
-            names = {t.id for t in node.targets if isinstance(t, ast.Name)}
-            if names & {"_EVASIVE", "_SUBSTANTIVE"}:
-                owners.append(path.name)
+            if node.value is None:
+                continue
+            # A copy of the split is a literal collection of taxonomy labels
+            # that lies wholly inside ONE family. The full taxonomy — the label
+            # descriptions, the per-label confidences — spans both, so it is
+            # not a copy and is not flagged.
+            labels = _literal_strings(node.value) & known
+            if len(labels) >= 3 and (labels <= _SUBSTANTIVE or labels <= _EVASIVE):
+                owners.setdefault(path.name, []).extend(names)
+
     assert set(owners) == {"aggregations.py"}, (
-        f"the substantive/evasive split is defined in {sorted(set(owners))}. "
-        f"It belongs in aggregations.py alone; import it from there."
+        f"the substantive/evasive split is defined in {sorted(owners)}. "
+        f"It belongs in aggregations.py alone. Import it from there."
     )
 
 
@@ -154,6 +177,20 @@ def test_outcome_rate_drops_below_confidence():
     assert rate.excluded == {"below_confidence": 1}
 
 
+def test_a_null_confidence_row_does_not_raise():
+    """`analysis_discourse.jsonl` holds rows with a null label and confidence.
+
+    A `dfg_recommendation_passthrough` row is a committee ask with no response
+    yet. It carries a real classifier, so it passes the capability gate. A
+    caller building Row(**row) straight from the file must not hit a TypeError.
+    """
+    rows = [Row(key="a", label=None, confidence=None,
+                classifier=discourse.CLASSIFIER_VERSION)]
+    rate = outcome_rate(rows, min_n=1)
+    assert rate.n == 0
+    assert rate.excluded == {"below_confidence": 1}
+
+
 def test_a_refusal_at_the_top_confidence_refuses_the_record():
     """A weaker tier must not overturn a stronger tier's UNCLASSIFIED.
 
@@ -189,6 +226,79 @@ def test_a_tie_that_agrees_still_counts():
     rate = outcome_rate(rows, min_n=1)
     assert rate.n == 1
     assert rate.evasive == 1
+
+
+# --- the fields on the summary rows -----------------------------------------
+#
+# tiers.py in isolation cannot show what the summarisers put in the file. The
+# first version of these fields counted a sentinel tier for every record with
+# no discourse row, and read rate_publishable=False on any realistic corpus.
+# A unit test over hand-built tier lists cannot see that. This can.
+
+
+def _corpus(tmp_path, manifest_rows, discourse_rows):
+    import json
+    (tmp_path / "manifest.jsonl").write_text(
+        "\n".join(json.dumps(r) for r in manifest_rows), encoding="utf-8")
+    (tmp_path / "analysis_discourse.jsonl").write_text(
+        "\n".join(json.dumps(r) for r in discourse_rows), encoding="utf-8")
+    return tmp_path
+
+
+def _first_row(path):
+    import json
+    return json.loads(path.read_text(encoding="utf-8").splitlines()[0])
+
+
+def test_a_record_with_no_discourse_row_does_not_make_a_rate_unpublishable(tmp_path):
+    """An unclassified record is in neither side of the rate.
+
+    `analyse-discourse` reads answers.jsonl and skips a record whose answer is
+    empty, so a manifest record with no discourse row is the normal case. Its
+    tier is unknown, but no unknown tier touched the rate.
+    """
+    from commoner_analyse.aggregations import write_ministry_summary, write_mp_summary
+
+    d = _corpus(
+        tmp_path,
+        [
+            {"key": "k1", "kind": "qa", "ministry": "M", "house": "Lok Sabha",
+             "askers": ["Shri A"]},
+            {"key": "k2", "kind": "qa", "ministry": "M", "house": "Lok Sabha",
+             "askers": ["Shri A"]},
+        ],
+        [
+            {"key": "k1", "kind": "qa_response_analysis", "label": "DEFLECTED",
+             "confidence": 0.9, "classifier": discourse.CLASSIFIER_VERSION},
+        ],
+    )
+    write_ministry_summary(d)
+    write_mp_summary(d)
+
+    ministry = _first_row(d / "ministry_summary_qa.jsonl")
+    assert ministry["tiers_seen"] == {discourse.CLASSIFIER_VERSION: 1}
+    assert ministry["rate_publishable"] is True
+    assert ministry["records_unclassified"] == 1
+
+    mp = _first_row(d / "mp_summary.jsonl")
+    assert mp["tiers_seen"] == {discourse.CLASSIFIER_VERSION: 1}
+    assert mp["rate_publishable"] is True
+
+
+def test_an_unregistered_tier_in_the_corpus_makes_the_rate_unpublishable(tmp_path):
+    from commoner_analyse.aggregations import write_ministry_summary
+
+    d = _corpus(
+        tmp_path,
+        [{"key": "k1", "kind": "qa", "ministry": "M", "house": "Lok Sabha",
+          "askers": ["Shri A"]}],
+        [{"key": "k1", "kind": "qa_response_analysis", "label": "DEFLECTED",
+          "confidence": 0.9, "classifier": "mystery_v1"}],
+    )
+    write_ministry_summary(d)
+    row = _first_row(d / "ministry_summary_qa.jsonl")
+    assert row["tiers_seen"] == {"mystery_v1": 1}
+    assert row["rate_publishable"] is False
 
 
 def test_min_n_gates_citability_without_hiding_the_number():

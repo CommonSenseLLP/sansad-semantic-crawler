@@ -24,10 +24,27 @@ researchers who pin a tag and want to know what they are pinning to.
 
   This is the 2.2.0 bug a second time, in the copy nobody looked at. `dossier.py`
   now imports the split from `aggregations.py`, which is its single source.
+
+- **Every MP weight was computed over an incomplete split.** `weighting.py`
+  held a *third* copy, under a comment claiming the vocabulary was locked. It
+  was missing `FACTUAL_DISCLOSURE` from the substantive side and all four
+  Instrumented Discourse Tier v2 labels from the evasive side. Five labels
+  therefore counted toward **neither** term of
+  `raw_weight = (substantive - evasive) / total`, and toward neither term of
+  `effective_n`. So a weight lost real signal in both directions, and the
+  smaller `effective_n` made Bayesian shrinkage pull harder toward the party
+  prior than the evidence warranted. `SUBSTANTIVE_LABELS` and `EVASIVE_LABELS`
+  are now aliases of the single source, so both names keep working.
+
+  **Weights move for any corpus containing those five labels.** They move
+  toward the correct value.
+
   `tests/test_tiers.py::test_the_substantive_evasive_split_has_one_source`
-  walks the package with `ast` and fails if any other module defines it again.
-  No behaviour test could catch this, because each copy was internally
-  consistent.
+  walks the package with `ast` and fails if any module defines the split
+  again. It matches on the label *contents*, not the variable name, because
+  `weighting.py`'s copy was called something else and a name-bound check would
+  not have found it. No behaviour test could catch either copy — each was
+  internally consistent.
 
 ### Added
 
@@ -50,8 +67,14 @@ researchers who pin a tag and want to know what they are pinning to.
 - **`tiers_seen` and `rate_publishable` on every summary row.**
   `mp_summary.jsonl`, `ministry_summary_qa.jsonl` and
   `ministry_summary_committee.jsonl` now report which tiers produced the labels
-  behind a rate, and whether that rate may be published. Additive; no existing
+  behind a rate, and whether that rate may be published. Additive. No existing
   field or count changes.
+
+  A record the classifier left unclassified is in neither side of the rate, so
+  its tier is not counted. Counting it would put a sentinel in `tiers_seen` and
+  read `rate_publishable: false` on a rate no unknown tier touched — and a
+  record with no discourse row is the normal case, because `analyse-discourse`
+  reads `answers.jsonl` and skips a record whose answer text is empty.
 
 - **`aggregations.label_function()`** — the public name for the split, so
   `dossier.py` and `export.py` read it rather than copying it. `_classify_label`
