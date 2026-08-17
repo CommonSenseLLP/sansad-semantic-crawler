@@ -101,7 +101,15 @@ class DiscourseRow:
 
 @dataclass(frozen=True)
 class OutcomeRate:
-    """A substantive/evasive split, its denominator, and what it dropped."""
+    """A substantive/evasive split, its denominator, and what it dropped.
+
+    ``excluded`` mixes two units, and it must. ``one_sided_tier``,
+    ``unregistered_tier`` and ``below_confidence`` count ROWS.
+    ``tied_conflict`` and ``top_unclassified`` count RECORDS. A record can also
+    lose a row to the first group and still reach ``n`` through another tier.
+    So ``excluded`` does not reconcile against ``n`` in either direction. It
+    says what was refused and why, not what the denominator would have been.
+    """
 
     n: int
     substantive: int
@@ -149,13 +157,7 @@ def outcome_rate(
     decided by a weaker tier that did call it. Every such override lands on the
     benign side, which is the failure the guard exists to prevent.
 
-    **``excluded`` mixes two units, and it must.** ``one_sided_tier``,
-    ``unregistered_tier`` and ``below_confidence`` count ROWS.
-    ``tied_conflict`` and ``top_unclassified`` count RECORDS. A record can
-    also lose a row to the first group and still reach ``n`` through another
-    tier. So ``excluded`` does not reconcile against ``n`` in either
-    direction. It says what was refused and why, not what the denominator
-    would otherwise have been.
+    See ``OutcomeRate.excluded`` for how to read the drop counts.
     """
     # Deferred: aggregations.py owns the split and imports this module for the
     # guard, so a module-level import here would close the cycle.

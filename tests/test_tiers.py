@@ -81,44 +81,53 @@ def test_declared_capability_matches_the_taxonomy():
     assert TIER_CAPABILITY[discourse.LLM_CLASSIFIER_VERSION] == BOTH_FAMILIES
 
 
-def test_the_substantive_evasive_split_has_one_source():
-    """No module may keep a second copy of the split.
+def _string_constants(node: ast.AST) -> set[str]:
+    return {
+        n.value for n in ast.walk(node)
+        if isinstance(n, ast.Constant) and isinstance(n.value, str)
+    }
 
-    `dossier.py` kept one and it drifted by three labels. A copy is not caught
-    by any behaviour test, because each copy is internally consistent.
-    """
-    # Match on the CONTENTS, not the variable name. A copy called
-    # EVASIVE_LABELS is the plausible thing for the next author to write, and a
-    # name-bound check would not see it. `ast.AnnAssign` is walked too, because
-    # `_EVASIVE: frozenset[str] = frozenset({...})` is not an `ast.Assign`.
-    known = _SUBSTANTIVE | _EVASIVE
+
+def _assigned_names(node: ast.AST) -> list[str] | None:
+    # AnnAssign as well as Assign: `_EVASIVE: frozenset[str] = frozenset({...})`
+    # is not an ast.Assign, and a name-bound check would miss it.
+    if isinstance(node, ast.Assign):
+        return [t.id for t in node.targets if isinstance(t, ast.Name)]
+    if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+        return [node.target.id]
+    return None
+
+
+def _defines_the_split(node: ast.AST) -> bool:
+    # A copy of the split is a literal collection of taxonomy labels lying
+    # wholly inside ONE family, whatever it calls itself — weighting.py's copy
+    # was named EVASIVE_LABELS. The full taxonomy spans both families, so the
+    # label descriptions and the per-label confidences are not copies.
+    labels = _string_constants(node) & (_SUBSTANTIVE | _EVASIVE)
+    return len(labels) >= 3 and (labels <= _SUBSTANTIVE or labels <= _EVASIVE)
+
+
+def _split_definitions() -> dict[str, list[str]]:
+    """Map each package module that defines the split to the names it uses."""
     owners: dict[str, list[str]] = {}
-
-    def _literal_strings(node: ast.AST) -> set[str]:
-        return {
-            n.value for n in ast.walk(node)
-            if isinstance(n, ast.Constant) and isinstance(n.value, str)
-        }
-
     for path in sorted(PACKAGE.rglob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
-            if isinstance(node, ast.Assign):
-                names = [t.id for t in node.targets if isinstance(t, ast.Name)]
-            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
-                names = [node.target.id]
-            else:
+            names = _assigned_names(node)
+            if names is None or node.value is None:
                 continue
-            if node.value is None:
-                continue
-            # A copy of the split is a literal collection of taxonomy labels
-            # that lies wholly inside ONE family. The full taxonomy — the label
-            # descriptions, the per-label confidences — spans both, so it is
-            # not a copy and is not flagged.
-            labels = _literal_strings(node.value) & known
-            if len(labels) >= 3 and (labels <= _SUBSTANTIVE or labels <= _EVASIVE):
+            if _defines_the_split(node.value):
                 owners.setdefault(path.name, []).extend(names)
+    return owners
 
+
+def test_the_substantive_evasive_split_has_one_source():
+    """No module may keep a second copy of the split.
+
+    `dossier.py` and `weighting.py` each kept one, and both drifted. A copy is
+    caught by no behaviour test, because every copy is internally consistent.
+    """
+    owners = _split_definitions()
     assert set(owners) == {"aggregations.py"}, (
         f"the substantive/evasive split is defined in {sorted(owners)}. "
         f"It belongs in aggregations.py alone. Import it from there."
