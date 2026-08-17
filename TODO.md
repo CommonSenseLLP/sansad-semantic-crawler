@@ -4,8 +4,8 @@
 
 - [ ] Fix FDA: System Settings → Privacy & Security → Full Disk Access → add Claude Code binary
 - [ ] Wait for partial-recall corpus filter fix before using `corpus="folder"` in MCP queries
-- [ ] Import `notes/neva-bihar-citations.ris` into Zotero (File → Import)
-- [ ] Verify Bihar first session date (22 July 1937) + Ram Dayalu Singh as Speaker — primary source before op-ed publication
+- [ ] Adjudicate `REJECTED`: substantive here, dodge in zero-hour — decides
+      whether a cross-repo evasion rate is comparable (flagged in zero-hour PR #29)
 - [ ] Search sansad.in written answers for NeVA year-wise expenditure by state
 
 ## Future
@@ -24,7 +24,6 @@
 - [ ] File RTI: Bihar Vidhan Sabha — status of pre-2022 paper records, digitization plan
 - [ ] File RTI: NIC — status of vidhansabha.bih.nic.in data (migrating or abandoned?)
 - [ ] Check Wayback Machine: vidhansabha.bih.nic.in snapshots 2010–2019
-- [ ] Op-ed: finish verify checklist then share (notes/op-ed-draft-bihar-hollowtech.md)
 - [ ] Publish `notes/neva-api-public-draft.md` once ≥10 states verified
 
 ### Central parliament (pre-existing)
@@ -43,6 +42,16 @@
       classify and aggregate call sites — not yet started)
 
 ## Archive
+
+- [x] Op-ed + its sources MOVED OUT (2026-08-04) to
+      `~/Developer/writing/opeds/hollowtech/`, per the org rule that public
+      prose lives in `writing/`, not a pipeline repo. The .ris import and the
+      remaining verify checklist went with it. (Routed via zero-hour first;
+      that was the wrong surface — it is a member-facing product layer.)
+- [x] Bihar 1937 claims verified (2026-08-04): Ram Dayalu Singh as Speaker
+      CONFIRMED (no election date established); "first sat 22 July 1937"
+      REFUTED — that is the first joint session of the two houses. Source and
+      quotes in memory/verified_facts.md.
 
 - [x] Fixed all 6 outstanding Codex findings (2026-07-08): `graph.py` classifications/
       atr_linkages unique constraints + clear-before-reload (PR#34); `dossier.py`
