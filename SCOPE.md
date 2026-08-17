@@ -72,12 +72,10 @@ a draft for outside readers, it moves under the same rule.
 ## Current active scope
 
 - Maintaining the analysis surface against `commoner-probe` releases (pinned
-  `==`, currently `0.13.0`).
+  `==`, currently `0.14.3`).
 - Keeping the discourse taxonomy and its consumers in sync — the export path
   exists now; drift is a test failure downstream, not a manual check.
-- **Open:** whether `REJECTED` is substantive (this repo) or a dodge
-  (`zero-hour`). Unadjudicated. Until it is settled, evasion rates from the two
-  repos are not comparable.
+- **`REJECTED`: adjudicated 2026-08-17. See the section below.**
 - NeVA state coverage remains 1 (Gujarat). Acquisition for more states is
   `commoner-probe state-assembly` work, not this repo's.
 
@@ -95,6 +93,52 @@ This is a published package with downstream consumers (`theright2read`,
   `probed_at` is the source-of-truth timestamp; `crawled_at` is a
   backwards-compatibility alias and both should be present.
 - Changelog entry lands in the same commit as any version bump.
+
+## `REJECTED` — the adjudication (2026-08-17)
+
+`zero-hour` counts `REJECTED` as a dodge. This repo counts it as substantive.
+`theright2read` had copied the dodge reading and inflated its evasion rate
+(REQ-0009). REQ-0057 blocks on the verdict.
+
+**Verdict: `REJECTED` stays substantive. The label is nonetheless wrong, and
+the wrongness is narrower than either repo's reading.**
+
+A refusal is an answer. When a ministry says it "does not agree", or that a
+measure is "not feasible", the government has taken a position on the record.
+That position is contestable in public. An evasion is not. Counting refusals
+as evasions destroys the distinction the taxonomy exists to draw. It also
+flatters the ministry that refuses openly over the one that says nothing.
+
+The defect is that `_REJECTED` in `discourse.py` carries two different speech
+acts under one label:
+
+1. **Refusal with a stated position** — `does not agree`, `does not concur`,
+   `not feasible`, `constraints of resources`, `govt. has not approved`. The
+   ministry answered. The answer is no. **Substantive.**
+2. **Premise denial** — `does not arise`, and the sub-part form
+   `(b) and (c) Do not arise`. This answers nothing. It dissolves the question
+   instead of replying to it, and it is one of the most common non-answers in
+   Indian parliamentary practice. **Evasive.**
+
+The tree already carries the evidence. `_CONFIDENCE["REJECTED"] = 0.90` is
+justified in its own comment as "near-impossible to misread 'does not agree'".
+The confidence was set on act 1 and then applied to act 2.
+
+**What must happen before the split ships:**
+
+1. Measure the share of `REJECTED` rows that fire only on the `does not arise`
+   patterns. **Not measured.** `data/` is down under the m1-storage incident,
+   so no count exists in this repo today.
+2. Read the 20 records where `zero-hour` says `FACTUAL_DISCLOSURE` and this
+   repo says `SUBSTITUTED` (REQ-0057). Nobody has read them.
+3. Ship the split as a **minor** release with a changelog entry. It moves a
+   published rate for `theright2read` and `academiaindia`.
+
+**Until step 1 runs, do not change the classification.** A rate that moves for
+an unmeasured reason is not an improvement.
+
+**What `zero-hour` may do now:** stop treating the whole label as a dodge. It
+is right about `does not arise` and wrong about the rest.
 
 ## Non-negotiable
 
