@@ -11,6 +11,16 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`CITATION.cff` claimed version `2.2.0` while the package shipped `2.4.0`.**
+  Anyone citing this package in a paper, an article or a filing recorded a
+  version two releases behind, and a wrong version in a published citation is
+  not recoverable. Codex flagged it on the `v2.3.0` release PR; it shipped
+  anyway, because nothing tested it. `tests/test_docs_sync.py` now holds
+  `CITATION.cff`'s version to `__version__`, alongside `pyproject.toml`, the
+  README install pins and the changelog entry.
+
 ## [2.4.0] — 2026-08-17
 
 Two live defects, found while porting a guard against a third. All three are
