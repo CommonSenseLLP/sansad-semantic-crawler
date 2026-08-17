@@ -1,6 +1,6 @@
 # SCOPE — commoner-analyse
 
-Canonical scope doc (per `_org/architecture.md` → Canonical Project Documents).
+Canonical scope doc, per the organisation's canonical-project-docs rule.
 
 **Doc conflict priority:** `SCOPE.md` → `ARCHITECTURE.md` → `CHANGELOG.md` →
 `README.md`. If two disagree, reconcile here first; do not silently pick the
@@ -49,14 +49,12 @@ can act on is this repo's whole job.
 
 ## Publication is not this repo's job
 
-The org rule already exists for other threads: governmentality prose lives in
-`writing/governmentality/`, the senior-bureaucracy op-ed layer in
-`writing/opeds/meritless/` — "publication layer lives in writing, not a
-hybrid repo" (`_org/architecture.md`).
+The organisation already routes prose this way for other threads. The
+publication layer lives in a writing repo, never in a hybrid pipeline repo.
 
-This repo drifted from that. The NeVA/Bihar hollowtech op-ed and its primary
-sources sat in `notes/` for months because that is where the probing happened.
-On **2026-08-04** they moved to `~/Developer/writing/opeds/hollowtech/`.
+This repo drifted from that. A finished op-ed and its primary sources sat in
+the repo's local research area for months, because that is where the probing
+happened. On **2026-08-04** they moved to the publication surface.
 
 **The rule going forward:** research notes, probe output, hypotheses and
 verification ledgers belong here. A draft written for a reader outside the org
@@ -64,10 +62,9 @@ does not — it moves to the surface that will publish it, and it takes its
 citations and primary sources with it. Analysis that feeds a piece stays;
 the piece goes.
 
-Still here, correctly: `notes/blog-neva-institutional-memory.md`,
-`notes/bihar-assembly-records-tragedy.md`, `notes/neva-api*.md`,
-`notes/NEVA_EXPANSION_STRATEGY.md` — research, not publication. If any becomes
-a draft for outside readers, it moves under the same rule.
+Working research on the same subjects correctly stays. Research is not
+publication. If a piece of it becomes a draft for outside readers, it moves
+under the same rule.
 
 ## Current active scope
 
@@ -84,18 +81,10 @@ a draft for outside readers, it moves under the same rule.
 This is a published package with downstream consumers (`theright2read`,
 `academiaindia`, `zero-hour`, `public-finance`).
 
-**The versioning rules are org-wide and live in `_org/versioning.md`.** Read them
-there. Patch/minor/major, the schema-is-public-surface rule, exact pinning, and
-tag discipline are not this repo's to define.
+Versioning, release and pinning rules are set organisation-wide, not here.
 
-Only what is true of THIS repo sits here:
+This repo's own data contract:
 
-- **Stay on `2.x` for a long time.** Commoner's decision, 2026-08-17. This repo
-  has spent three majors in four months, and each one costs every consumer a
-  migration. `3.0.0` needs Commoner's explicit decision.
-- **`2.x` is a lineage, not a maturity grade, and it cannot be corrected.**
-  `v0.1.0` through `v1.1.0` are already tagged, from the pre-rename repo that
-  reached `v1.0.0` five days after its first commit.
 - `session` is `"ls"` | `"rs"` only. `year` is the YYYY-YY financial year.
   `probed_at` is the source-of-truth timestamp; `crawled_at` is a
   backwards-compatibility alias and both should be present.
@@ -150,6 +139,6 @@ is right about `does not arise` and wrong about the rest.
 ## Non-negotiable
 
 **No claim without a source read in the turn that made it.** This repo feeds
-litigation-adjacent and press-adjacent work; a confident wrong number costs
-more than no number. Verified facts are logged to `memory/verified_facts.md`
-as they are verified, not later.
+litigation-adjacent and press-adjacent work. A confident wrong number costs
+more than no number. Verified facts are logged to the repo's verification
+ledger as they are verified, not later.
