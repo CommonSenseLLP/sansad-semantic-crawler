@@ -11,6 +11,19 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Added
+
+- **The tier guard now reaches the public export.** `v2.4.0` put `tiers_seen`
+  and `rate_publishable` on the summary JSONL rows, but `export`'s
+  `discourseSummary` still published `evasionRateClassified` with no
+  publishability verdict — and the export is what a downstream site actually
+  reads. Both `discourseSummary` and each `ministryDiscourse` entry now carry
+  `tiersSeen` and `ratePublishable`. Additive; no existing field changes.
+
+  As in the summary rows, an `UNCLASSIFIED` row does not contribute its tier.
+  It is on neither side of the rate, so counting it would mark the rate
+  unpublishable over a tier that never touched it.
+
 ### Fixed
 
 - **`CITATION.cff` claimed version `2.2.0` while the package shipped `2.4.0`.**
