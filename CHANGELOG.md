@@ -11,6 +11,52 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Every dossier under-counted evasion.** `dossier.py` kept its own copy of
+  the substantive/evasive split, and the copy drifted. It never took three of
+  the four Instrumented Discourse Tier v2 labels that `aggregations.py` gained
+  on 2026-07-06 — `FEDERAL_DEFLECTION`, `STRUCTURAL_REFUSAL` and
+  `REPRESENTATIONAL_SILENCE`. A dossier therefore counted all three as
+  *unclassified* rather than *evasive*, while `mp_summary.jsonl` and
+  `ministry_summary_*.jsonl` counted them correctly on the same corpus. The two
+  surfaces disagreed, and neither said so.
+
+  This is the 2.2.0 bug a second time, in the copy nobody looked at. `dossier.py`
+  now imports the split from `aggregations.py`, which is its single source.
+  `tests/test_tiers.py::test_the_substantive_evasive_split_has_one_source`
+  walks the package with `ast` and fails if any other module defines it again.
+  No behaviour test could catch this, because each copy was internally
+  consistent.
+
+### Added
+
+- **`tiers.py` — tier capability and the outcome-rate guard** (REQ-0058, from
+  `zero-hour`). A classification tier can be structurally incapable of reaching
+  one label family. Averaging such a tier with a tier that reads the whole
+  answer moves the rate, plausibly and silently; `zero-hour` measured 11.3
+  points of it. `TIER_CAPABILITY` records what each tier can reach,
+  `two_sided()` and `rate_publishable()` answer the question, and
+  `outcome_rate()` refuses a one-sided tier, an unregistered tier, a
+  below-confidence row, a top-confidence refusal, and a tie that disagrees on
+  the family — reporting each drop by reason rather than hiding it.
+
+  **This repo has no such bias today.** Both registered tiers reach both
+  families, so no current row is dropped for one-sidedness. The guard is here
+  because the repo publishes a rate over a `classifier` field it never read,
+  and because the third tier is the one that costs. The registry also carries
+  the `regex_v1` / `llm_discourse_v1` keys, which older corpora still hold.
+
+- **`tiers_seen` and `rate_publishable` on every summary row.**
+  `mp_summary.jsonl`, `ministry_summary_qa.jsonl` and
+  `ministry_summary_committee.jsonl` now report which tiers produced the labels
+  behind a rate, and whether that rate may be published. Additive; no existing
+  field or count changes.
+
+- **`aggregations.label_function()`** — the public name for the split, so
+  `dossier.py` and `export.py` read it rather than copying it. `_classify_label`
+  stays as an alias.
+
 ## [2.3.0] — 2026-08-17
 
 Twenty commits since `v2.2.0`, none of them released. Downstream pins to a tag,
