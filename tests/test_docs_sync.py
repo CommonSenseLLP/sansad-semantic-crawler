@@ -20,6 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 README = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 CHANGELOG = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 PYPROJECT = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+CITATION = (REPO_ROOT / "CITATION.cff").read_text(encoding="utf-8")
 
 
 class VersionSyncTests(unittest.TestCase):
@@ -35,6 +36,17 @@ class VersionSyncTests(unittest.TestCase):
     def test_pyproject_version_matches_package_version(self):
         match = re.search(r'^version = "([^"]+)"$', PYPROJECT, re.MULTILINE)
         self.assertIsNotNone(match)
+        self.assertEqual(__version__, match.group(1))
+
+    def test_citation_version_matches_package_version(self):
+        """CITATION.cff tells researchers which version they are citing.
+
+        It drifted to 2.2.0 while the package shipped 2.4.0, because no test
+        looked at it. A wrong version in a citation is not recoverable once
+        the paper is out.
+        """
+        match = re.search(r'^\s*version: "([^"]+)"$', CITATION, re.MULTILINE)
+        self.assertIsNotNone(match, "CITATION.cff has no version field")
         self.assertEqual(__version__, match.group(1))
 
     def test_changelog_has_current_version_entry(self):
