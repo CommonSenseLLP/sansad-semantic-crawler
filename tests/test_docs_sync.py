@@ -33,6 +33,29 @@ class VersionSyncTests(unittest.TestCase):
         self.assertTrue(versions)
         self.assertEqual({__version__}, set(versions))
 
+    def test_no_module_hardcodes_a_version_in_a_user_agent(self):
+        """Every outbound request must name the release it actually is.
+
+        `http_client.py` and `neva.py` each held a literal
+        `commoner-analyse/2.2.0` while the package shipped 2.4.0. Codex named
+        both on PR #78 beside CITATION.cff, and only the citation was fixed.
+        The version-string tests above did not look at source files, so two
+        releases went out identifying themselves wrongly to the servers we
+        crawl. Both now derive the string from __version__.
+        """
+        stale = []
+        for path in sorted((REPO_ROOT / "commoner_analyse").glob("*.py")):
+            source = path.read_text(encoding="utf-8")
+            for found in re.findall(r"commoner-analyse/([0-9]+\.[0-9]+\.[0-9]+)", source):
+                if found != __version__:
+                    stale.append(f"{path.name}: commoner-analyse/{found}")
+        self.assertEqual([], stale, f"hardcoded stale version(s); package is {__version__}")
+
+    def test_neva_user_agent_matches_package_version(self):
+        from commoner_analyse.neva import NEVA_UA
+
+        self.assertEqual(f"commoner-analyse/{__version__} (research)", NEVA_UA)
+
     def test_pyproject_version_matches_package_version(self):
         match = re.search(r'^version = "([^"]+)"$', PYPROJECT, re.MULTILINE)
         self.assertIsNotNone(match)

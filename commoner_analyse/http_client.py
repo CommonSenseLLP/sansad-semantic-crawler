@@ -8,6 +8,8 @@ import urllib.request
 from typing import Any
 from urllib.parse import urlencode
 
+from . import __version__
+
 
 def _load_commoner_probe_http() -> Any | None:
     try:
@@ -23,7 +25,7 @@ USING_COMMONER_PROBE_HTTP = _commoner_http is not None
 USER_AGENT = getattr(
     _commoner_http,
     "USER_AGENT",
-    "commoner-analyse/2.2.0 (+https://github.com/CommonerLLP/commoner-analyse)",
+    f"commoner-analyse/{__version__} (+https://github.com/CommonerLLP/commoner-analyse)",
 )
 DEFAULT_RATE_LIMIT_SEC = getattr(_commoner_http, "DEFAULT_RATE_LIMIT_SEC", 1.0)
 
