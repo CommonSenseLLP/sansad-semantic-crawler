@@ -11,6 +11,21 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Added
+
+- **`staging.py` and `fragment_merge.py` — the fleet-labelling ops REQ-0059
+  asked for.** `stage` builds a reading file whose split flag can only be as
+  true as the fields under it. `unsupported_claims` names any record whose flag
+  is not borne out. `collect` merges labelling fragments **by key, never by
+  position**, marks a disagreeing repeat as a conflict instead of letting the
+  last file read win, and hands the caller the repeat counts. `reconcile` sorts
+  each target key into accepted, partial, invented, conflicted, orphan or
+  unlabelled. `Reconciliation.redo` is the input set for the next pass.
+
+  Two changes from the source modules. `carried` is a parameter rather than a
+  private constant, so the staging step is not tied to one record shape. And
+  `Reconciliation.n_target` is `target_total` under the org naming rule.
+
 ## [2.5.0] — 2026-08-20
 
 ### Changed
