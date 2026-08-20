@@ -191,7 +191,7 @@ commoner-analyse[http,pdf] @ git+https://github.com/CommonerLLP/commoner-analyse
 
 The one required third-party dependency is `commoner-probe` — the
 acquisition engine and single source of truth for crawling. Beyond that the
-package runs on a clean Python 3.10+ install: the optional `[http]`/`[pdf]`
+package runs on a clean Python 3.11+ install: the optional `[http]`/`[pdf]`
 extras fall back to `urllib` for HTTP and to `pdftotext` (system binary) for
 PDF extraction.
 
