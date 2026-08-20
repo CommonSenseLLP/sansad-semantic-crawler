@@ -125,6 +125,31 @@ class MinistryDiscourseTests(unittest.TestCase):
             self.assertEqual(rows[0]["recordsTotal"], 10)
             self.assertEqual(rows[0]["evasionRateClassified"], 0.8)
 
+    def test_legacy_row_without_tiers_is_not_publishable(self):
+        """A pre-v2.4.0 file carries no tier fields. The verdict must be False,
+        not null — a real rate beside a null verdict is the gap the guard closes.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            _write_jsonl(out / "ministry_summary_qa.jsonl", [
+                {"ministry": "LEGACY", "records_total": 9, "evasion_rate_classified": 0.4},
+            ])
+            row = build_ministry_discourse(out)[0]
+            self.assertEqual(row["evasionRateClassified"], 0.4)
+            self.assertIs(row["ratePublishable"], False)
+            self.assertEqual(row["tiersSeen"], {})
+
+    def test_verdict_is_recomputed_from_tiers_seen(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            _write_jsonl(out / "ministry_summary_qa.jsonl", [
+                {"ministry": "TWO_SIDED", "records_total": 9, "tiers_seen": {"regex_v2": 3}},
+                {"ministry": "UNKNOWN_TIER", "records_total": 4, "tiers_seen": {"mystery": 1}},
+            ])
+            rows = {r["ministry"]: r for r in build_ministry_discourse(out)}
+            self.assertIs(rows["TWO_SIDED"]["ratePublishable"], True)
+            self.assertIs(rows["UNKNOWN_TIER"]["ratePublishable"], False)
+
 
 class GlossaryTests(unittest.TestCase):
 
