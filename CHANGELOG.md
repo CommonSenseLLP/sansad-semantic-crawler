@@ -11,6 +11,20 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Added
+
+- **`inference_gates.py` — two of the seven checks REQ-0055 asked for.**
+  `build_pooling_verdict` / `assert_pooling_valid` refuse a pooled statistic
+  that falls outside the range of its strata. That is Simpson's paradox caught
+  without knowing why coverage varies. `build_unit_verdict` /
+  `assert_one_row_per_unit` refuse a per-unit rate computed over rows that are
+  not units, and report the denominator the caller actually has. Each returns
+  a `Verdict` carrying `ok`, a `reason` and the counts needed to write the
+  caveat. Gates 1, 3, 5 and 6 are **not** stubbed. They need dataset context
+  this repo does not hold, and a stub that always passes reads as a check that
+  ran. Gate 7 is a study design and is documented in the module docstring.
+  Nothing here computes a number and no existing output changes.
+
 ## [2.5.0] — 2026-08-20
 
 ### Changed
