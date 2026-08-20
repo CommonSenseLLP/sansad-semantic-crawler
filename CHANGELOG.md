@@ -11,7 +11,17 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.7.0] — 2026-08-20
+
 ### Changed
+
+- **MINOR, not MAJOR, and that is a decision.** The org rule reads "removed →
+  major", and dropping a Python version removes support. This release reads
+  that rule as scoped to the API, not to packaging metadata. Three facts back
+  it. `commoner-probe` made the same 3.10 to 3.11 move at its own **0.15.0**, a
+  minor. Neither consumer runs 3.10: academiaindia builds on 3.11 and
+  theright2read on 3.12. And pip refuses the install rather than breaking at
+  runtime, so a 3.10 consumer keeps the tag it already pins.
 
 - **BREAKING: the minimum Python is now 3.11, and `commoner-probe` is pinned
   `==0.16.0`.** Install this on 3.10 and pip refuses it. The two changes are
