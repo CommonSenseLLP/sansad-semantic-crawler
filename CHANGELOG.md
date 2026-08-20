@@ -11,6 +11,19 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Fixed
+
+- **This moves a published value: `ministryDiscourse[].ratePublishable` was
+  `null` for any export built from a `ministry_summary_qa.jsonl` written
+  before 2.4.0. It is now `false`.** Re-run `export` on any corpus whose
+  ministry summary predates 2.4.0, and re-read any downstream verdict taken
+  from that field. A legacy file carries no `tiers_seen` and no
+  `rate_publishable`, so the export read an absent key and published a real
+  `evasionRateClassified` beside a null verdict — the exact gap the tier guard
+  exists to close. `build_ministry_discourse` now recomputes the verdict from
+  `tiers_seen` with `tiers.rate_publishable`, which fails closed on an empty
+  or unregistered tier set. No field is added, renamed or removed.
+
 ## [2.5.0] — 2026-08-20
 
 ### Changed
