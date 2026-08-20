@@ -3,16 +3,16 @@
 Canonical scope doc, per the organisation's canonical-project-docs rule.
 
 **Doc conflict priority:** `SCOPE.md` → `ARCHITECTURE.md` → `CHANGELOG.md` →
-`README.md`. If two disagree, reconcile here first; do not silently pick the
+`README.md`. If two disagree, reconcile here first. Do not silently pick the
 convenient one. `ARCHITECTURE.md` is canonical for the pipeline map and the
-per-layer contracts; this file is canonical for the boundary.
+per-layer contracts. This file is canonical for the boundary.
 
 ---
 
 ## What this repo is
 
 The **domain-analysis layer** over public records that `commoner-probe`
-acquires. It reads a manifest and PDFs; it emits classification, discourse
+acquires. It reads a manifest and PDFs. It emits classification, discourse
 labels, aggregations, dossiers, and a graph. It is published as a package
 (AGPL-3.0-or-later) and consumed by other CommonerLLP repos.
 
@@ -26,26 +26,33 @@ can act on is this repo's whole job.
 2. **Discourse analysis** — `analyse-discourse`, and the label taxonomy in
    `discourse.py::DISCOURSE_LABEL_DESCRIPTIONS`. **This repo is the single
    source of that vocabulary for the whole org.** Consumers read it as data
-   via `export-glossary`; nobody hand-copies it (see REQ-0010).
+   via `export-glossary`. Nobody hand-copies it (see REQ-0010).
 3. **Answer / ATR extraction** — `extract-answers`, `extract-atr-linkage`.
 4. **Aggregation** — `mp-summary`, `analyse-ministry`, `analyse-weights`, and
    the substantive/evasive split in `aggregations.py`. That split must stay in
-   sync with the taxonomy above; they have drifted before.
+   sync with the taxonomy above. They have drifted before.
 5. **Dossiers and graph** — `mp-dossier`, `ministry-dossier`, `build-graph`.
-6. **The public contracts** — the JSONL manifest schema, the `export` /
+6. **Inference gates** — `inference_gates.py`. Whether an aggregate is
+   entitled to exist, asked before it is quoted. Gate 2 refuses a pooled
+   figure outside its stratum range. Gate 4 refuses a per-unit rate computed
+   over rows that are not units. Filed as REQ-0055.
+7. **Labelling ops** — `staging.py`, `fragment_merge.py`. Cut the reading
+   file for a labelling pass. Reconcile by key the fragments a fleet writes
+   back. Ported under REQ-0059.
+8. **The public contracts** — the JSONL manifest schema, the `export` /
    `export-glossary` output shape, and the CLI surface. Every field is an
-   interface; see "Public package discipline" below.
+   interface. See "Public package discipline" below.
 
 ## What it does not own
 
 | not this repo | whose | why |
 |---|---|---|
-| Acquisition — HTTP, crawling, scraping, provenance manifests | `commoner-probe` (hard dependency) | This repo holds **zero** acquisition code. A missing capability is a commoner-probe issue; check its CHANGELOG before assuming a gap, then file a cross-repo REQ. |
+| Acquisition — HTTP, crawling, scraping, provenance manifests | `commoner-probe` (hard dependency) | This repo holds **zero** acquisition code. A missing capability is a commoner-probe issue. Check its CHANGELOG before assuming a gap, then file a cross-repo REQ. |
 | Chunking, embeddings, FTS/vector search, MCP retrieval serving | `partial-recall` | Do not build a second search stack. The org paid for that lesson once. |
 | Budget, RBI, fiscal, NHA/OOPE tooling | `public-finance` | — |
 | Member-facing products — question kits, briefs, dossiers delivered to MPs/MLAs | `zero-hour` | This repo produces the analysis those products consume. |
 | Public static surfaces / campaign sites | `theright2read`, `academiaindia`, `sevent4` | They consume generated data. |
-| **Publication — op-eds, articles, pamphlets, public prose** | the relevant publication surface | See below. |
+| **Publication.** Op-eds, articles, pamphlets, public prose | the relevant publication surface | See below. |
 
 ## Publication is not this repo's job
 
@@ -58,9 +65,9 @@ happened. On **2026-08-04** they moved to the publication surface.
 
 **The rule going forward:** research notes, probe output, hypotheses and
 verification ledgers belong here. A draft written for a reader outside the org
-does not — it moves to the surface that will publish it, and it takes its
-citations and primary sources with it. Analysis that feeds a piece stays;
-the piece goes.
+does not. It moves to the surface that will publish it. It takes its citations
+and primary sources with it. Analysis that feeds a piece stays. The piece
+goes.
 
 Working research on the same subjects correctly stays. Research is not
 publication. If a piece of it becomes a draft for outside readers, it moves
@@ -71,7 +78,7 @@ under the same rule.
 - Maintaining the analysis surface against `commoner-probe` releases (pinned
   `==`, currently `0.14.3`).
 - Keeping the discourse taxonomy and its consumers in sync — the export path
-  exists now; drift is a test failure downstream, not a manual check.
+  exists now. Drift is a test failure downstream, not a manual check.
 - **`REJECTED`: adjudicated 2026-08-17. See the section below.**
 - NeVA state coverage remains 1 (Gujarat). Acquisition for more states is
   `commoner-probe state-assembly` work, not this repo's.
@@ -86,7 +93,7 @@ Versioning, release and pinning rules are set organisation-wide, not here.
 This repo's own data contract:
 
 - `session` is `"ls"` | `"rs"` only. `year` is the YYYY-YY financial year.
-  `probed_at` is the source-of-truth timestamp; `crawled_at` is a
+  `probed_at` is the source-of-truth timestamp. `crawled_at` is a
   backwards-compatibility alias and both should be present.
 - Changelog entry lands in the same commit as any version bump.
 
