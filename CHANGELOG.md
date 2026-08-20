@@ -11,6 +11,8 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.6.0] — 2026-08-20
+
 ### Added
 
 - **`staging.py` and `fragment_merge.py` — the fleet-labelling ops REQ-0059
