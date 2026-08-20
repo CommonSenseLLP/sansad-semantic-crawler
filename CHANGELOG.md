@@ -11,6 +11,8 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.5.0] — 2026-08-20
+
 ### Changed
 
 - **Licence: PolyForm Noncommercial 1.0.0 → AGPL-3.0-or-later.** This changes
@@ -38,6 +40,15 @@ researchers who pin a tag and want to know what they are pinning to.
   unpublishable over a tier that never touched it.
 
 ### Fixed
+
+- **Both User-Agent strings said `commoner-analyse/2.2.0` while the package
+  shipped 2.4.0.** Every NeVA request identified the wrong release to the
+  portals. Both `http_client.py` and `neva.py` now derive the string from
+  `__version__`. `tests/test_docs_sync.py` gained two checks: no module may
+  hardcode a version that differs from `__version__`, and `NEVA_UA` must match.
+  The `http_client.py` string was the fallback used only when `commoner-probe`
+  is absent, and probe is a hard dependency — so that one was latent, not live.
+  `neva.py`'s was live.
 
 - **`CITATION.cff` claimed version `2.2.0` while the package shipped `2.4.0`.**
   Anyone citing this package in a paper, an article or a filing recorded a
