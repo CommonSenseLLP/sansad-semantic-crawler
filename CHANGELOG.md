@@ -26,6 +26,31 @@ researchers who pin a tag and want to know what they are pinning to.
   private constant, so the staging step is not tied to one record shape. And
   `Reconciliation.n_target` is `target_total` under the org naming rule.
 
+- **`inference_gates.py` — two of the seven checks REQ-0055 asked for.**
+  `build_pooling_verdict` / `assert_pooling_valid` refuse a pooled statistic
+  that falls outside the range of its strata. That is Simpson's paradox caught
+  without knowing why coverage varies. `build_unit_verdict` /
+  `assert_one_row_per_unit` refuse a per-unit rate computed over rows that are
+  not units, and report the denominator the caller actually has. Each returns
+  a `Verdict` carrying `ok`, a `reason` and the counts needed to write the
+  caveat. Gates 1, 3, 5 and 6 are **not** stubbed. They need dataset context
+  this repo does not hold, and a stub that always passes reads as a check that
+  ran. Gate 7 is a study design and is documented in the module docstring.
+  Nothing here computes a number and no existing output changes.
+
+### Fixed
+
+- **This moves a published value: `ministryDiscourse[].ratePublishable` was
+  `null` for any export built from a `ministry_summary_qa.jsonl` written
+  before 2.4.0. It is now `false`.** Re-run `export` on any corpus whose
+  ministry summary predates 2.4.0, and re-read any downstream verdict taken
+  from that field. A legacy file carries no `tiers_seen` and no
+  `rate_publishable`, so the export read an absent key and published a real
+  `evasionRateClassified` beside a null verdict — the exact gap the tier guard
+  exists to close. `build_ministry_discourse` now recomputes the verdict from
+  `tiers_seen` with `tiers.rate_publishable`, which fails closed on an empty
+  or unregistered tier set. No field is added, renamed or removed.
+
 ## [2.5.0] — 2026-08-20
 
 ### Changed
