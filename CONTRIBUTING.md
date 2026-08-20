@@ -59,7 +59,7 @@ closed.
 
 ## Development setup
 
-The package requires **Python 3.10, 3.11, 3.12, or 3.13** (matches
+The package requires **Python 3.11, 3.12, or 3.13** (matches
 `pyproject.toml`'s `requires-python` and the CI matrix). It runs on 3.14
 but pytest does not yet install cleanly under Python 3.14 on all
 platforms (the `__editable__` `.pth` file mechanism changed in 3.14 and

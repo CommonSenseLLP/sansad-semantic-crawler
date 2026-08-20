@@ -76,7 +76,7 @@ under the same rule.
 ## Current active scope
 
 - Maintaining the analysis surface against `commoner-probe` releases (pinned
-  `==`, currently `0.14.3`).
+  `==`, currently `0.16.0`).
 - Keeping the discourse taxonomy and its consumers in sync — the export path
   exists now. Drift is a test failure downstream, not a manual check.
 - **`REJECTED`: adjudicated 2026-08-17. See the section below.**

@@ -3,7 +3,7 @@ name = "commoner-analyse"
 version = "2.6.0"
 description = "Domain analysis adapters over commoner-probe's acquired public records: classification, aggregation, dossiers, and cross-referencing."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Commoner LLP" }]
 license = { text = "AGPL-3.0-or-later" }
 keywords = [
@@ -21,12 +21,11 @@ classifiers = [
   "Topic :: Sociology",
   "Topic :: Text Processing",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Operating System :: OS Independent",
 ]
-dependencies = ["commoner-probe==0.14.3"]
+dependencies = ["commoner-probe==0.16.0"]
 
 [project.optional-dependencies]
 pdf = ["pdfminer.six>=20231228"]

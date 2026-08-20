@@ -11,6 +11,27 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING: the minimum Python is now 3.11, and `commoner-probe` is pinned
+  `==0.16.0`.** Install this on 3.10 and pip refuses it. The two changes are
+  one change: probe raised its own floor to `>=3.11` at 0.15.0, so this repo
+  could not take any probe release after `0.14.9` while it still claimed 3.10.
+  The CI matrix drops its 3.10 leg. `README.md`, `CONTRIBUTING.md` and
+  `SCOPE.md` drop the claim too.
+
+  **This removes support, so the next release cannot be a patch.** Whether it
+  is a minor or a major is a decision, not a default. Python 3.10 reaches end
+  of life in October 2026.
+
+- **Three modules still import probe names that 0.16.0 deprecates.**
+  `committees.py:27` wants `commoner_probe.committee_report_api`,
+  `sansad.py:34` wants `commoner_probe.parliament_qa_api`, and `neva.py:22`
+  wants `commoner_probe.assembly_portal`. The suite passes with three
+  `DeprecationWarning`s today. It breaks when probe removes the old names.
+  Not fixed here, because renaming a re-export changes this package's own
+  surface and belongs in its own change.
+
 ## [2.6.0] — 2026-08-20
 
 ### Added
