@@ -5,7 +5,7 @@ description = "Domain analysis adapters over commoner-probe's acquired public re
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Commoner LLP" }]
-license = { text = "PolyForm-Noncommercial-1.0.0" }
+license = { text = "AGPL-3.0-or-later" }
 keywords = [
   "parliament-of-india",
   "lok-sabha",
@@ -16,6 +16,7 @@ keywords = [
   "civic-tech",
 ]
 classifiers = [
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
   "Intended Audience :: Science/Research",
   "Topic :: Sociology",
   "Topic :: Text Processing",

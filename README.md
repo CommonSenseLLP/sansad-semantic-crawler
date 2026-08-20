@@ -284,7 +284,15 @@ additive features before the next tag; check the changelog's
 
 ## Licence
 
-[PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/).
+[GNU Affero General Public License v3.0 or later](https://www.gnu.org/licenses/agpl-3.0.html).
+
+The package was PolyForm Noncommercial 1.0.0 until 2026-08-20. AGPL
+replaces it. Anyone who runs a modified version as a network service
+must publish their changes. Commercial use is permitted on those terms.
+
+The change also removes a licensing firewall inside CommonerLLP. Three
+AGPL sibling repos consume this package. Under the noncommercial licence
+they could not link it, so they called the CLI in a separate process.
 
 ## Citation
 

@@ -9,7 +9,7 @@ message: >-
 type: software
 authors:
   - name: "Commoner LLP"
-license: PolyForm-Noncommercial-1.0.0
+license: AGPL-3.0-or-later
 repository-code: "https://github.com/CommonerLLP/commoner-analyse"
 keywords:
   - parliament-of-india

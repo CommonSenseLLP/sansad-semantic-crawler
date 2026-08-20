@@ -11,6 +11,19 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Changed
+
+- **Licence: PolyForm Noncommercial 1.0.0 → AGPL-3.0-or-later.** This changes
+  what every user may do with the package, and it is not an API change. Read
+  it before you upgrade a pin. Commercial use is now permitted. Anyone who
+  runs a modified version as a network service must publish their changes.
+  `LICENSE`, `pyproject.toml`, `CITATION.cff`, `README.md`, `CONTRIBUTING.md`
+  and `SCOPE.md` all move together.
+- **The change removes a licensing firewall inside CommonerLLP.** Three AGPL
+  sibling repos consume this package. The noncommercial licence forbade
+  linking, so `zero-hour` calls the CLI from a sibling checkout and passes
+  files both ways. It may now depend on the package and import it.
+
 ### Added
 
 - **The tier guard now reaches the public export.** `v2.4.0` put `tiers_seen`
