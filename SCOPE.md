@@ -14,7 +14,7 @@ per-layer contracts; this file is canonical for the boundary.
 The **domain-analysis layer** over public records that `commoner-probe`
 acquires. It reads a manifest and PDFs; it emits classification, discourse
 labels, aggregations, dossiers, and a graph. It is published as a package
-(PolyForm-Noncommercial-1.0.0) and consumed by other CommonerLLP repos.
+(AGPL-3.0-or-later) and consumed by other CommonerLLP repos.
 
 The record is not the finding. Turning an acquired corpus into a claim someone
 can act on is this repo's whole job.

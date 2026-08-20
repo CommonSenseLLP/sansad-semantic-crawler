@@ -38,9 +38,6 @@ reviewers are about scope, not code.
   on top.
 - Rich data-cleaning / NER / named-entity normalisation. Out of scope
   unless someone shows up wanting to maintain it.
-- Commercial-friendly relicensing or dual licensing. The PolyForm
-  Noncommercial stance is deliberate (see README "Why PolyForm
-  Noncommercial?").
 
 If you are unsure whether your proposed change fits, open an issue
 describing the change before writing code.
@@ -159,10 +156,9 @@ and [academiaindia](https://github.com/CommonerLLP/academiaindia)).
 ## Licence
 
 This project is licensed under
-[PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/).
+[AGPL-3.0-or-later](https://www.gnu.org/licenses/agpl-3.0.html).
 By contributing, you agree to license your contribution under the same
-terms. See `LICENSE` and the README's "Why PolyForm Noncommercial?"
-section for context.
+terms. See `LICENSE` and the README's Licence section for context.
 
 ## Questions
 
