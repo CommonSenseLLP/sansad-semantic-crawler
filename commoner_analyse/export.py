@@ -90,6 +90,11 @@ def build_ministry_discourse(out_dir: Path) -> list[dict[str, Any]] | None:
 
     Returns ``None`` if that file doesn't exist (``analyse-ministry`` hasn't
     been run), matching ``build_discourse_summary``'s "omit, don't zero" rule.
+
+    ``ratePublishable`` is recomputed from ``tiers_seen`` rather than read from
+    the row. A file written before v2.4.0 carries neither field, and reading the
+    absent one publishes a real rate with a null verdict beside it. Recomputing
+    fails closed: no tiers means no verdict means False.
     """
     rows = read_jsonl(out_dir / "ministry_summary_qa.jsonl")
     if not rows:
@@ -104,7 +109,7 @@ def build_ministry_discourse(out_dir: Path) -> list[dict[str, Any]] | None:
             "labelDistribution": row.get("label_distribution", {}),
             "perEvasionShare": row.get("per_evasion_label_share", {}),
             "tiersSeen": row.get("tiers_seen", {}),
-            "ratePublishable": row.get("rate_publishable"),
+            "ratePublishable": rate_publishable(row.get("tiers_seen") or {}),
         }
         for row in sorted(rows, key=lambda r: -r.get("records_total", 0))
     ]
