@@ -11,6 +11,24 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`crawl-bills` and `crawl-debates` never warned that they are deprecated
+  acquisition commands.** The other three — `crawl`, `crawl-committees`,
+  `neva-crawl` — have printed a notice with the exact `commoner-probe`
+  replacement since the delegation landed. These two shipped without one, so
+  they were the only path that told a caller nothing about where acquisition
+  belongs. `SCOPE.md` says this repo holds zero acquisition code.
+
+  Both now print the same notice. Nothing is removed and no behaviour changes.
+
+- **A replacement command must be runnable.** `commoner-probe bills` and
+  `commoner-probe debates` take no `--reset`, unlike `sansad`. The message
+  therefore drops the flag for those two and says to delete the manifest by
+  hand instead. `tests/test_acquisition_compat.py` now walks every acquisition
+  command, builds its replacement, and checks each emitted flag against the
+  installed probe's own `--help`. It fails when probe renames or drops a flag.
+
 ### Changed
 
 - **Import three `commoner-probe` modules under their current names.**

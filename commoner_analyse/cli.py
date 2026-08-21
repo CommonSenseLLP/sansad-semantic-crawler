@@ -163,6 +163,7 @@ def crawl_committees_cmd(args: argparse.Namespace) -> None:
 
 
 def crawl_bills_cmd(args: argparse.Namespace) -> None:
+    warn_deprecated_acquisition("crawl-bills", args)
     # Lazy import: commoner_probe.bills ships in the probe's new-data-sources release, newer
     # than the committee/Q-A surface. Importing here (not at module top) keeps the rest of the
     # CLI working against an older probe — same approach as members in the entity resolver.
@@ -187,6 +188,7 @@ def crawl_bills_cmd(args: argparse.Namespace) -> None:
 
 
 def crawl_debates_cmd(args: argparse.Namespace) -> None:
+    warn_deprecated_acquisition("crawl-debates", args)
     from .debates import DebateProbe  # lazy — see crawl_bills_cmd
 
     out = Path(args.out)

@@ -159,3 +159,101 @@ def test_deprecation_message_names_local_compatibility_and_commoner_probe():
     assert "deprecated acquisition command" in message
     assert "commoner-probe sansad" in message
     assert "local compatibility crawler" in message
+
+
+def test_bills_and_debates_warn_like_the_other_acquisition_commands():
+    """`crawl-bills` and `crawl-debates` shipped without a deprecation notice.
+
+    The other three acquisition commands have warned since the delegation
+    landed. These two did not, so they were the only path that told a caller
+    nothing about where acquisition belongs.
+    """
+    bills = deprecation_message(
+        "crawl-bills",
+        argparse.Namespace(
+            out="data/out", house="ls", bill_type=None, max_records=50,
+            sleep=1.0, api_url=None, dry_run=False, reset=False,
+        ),
+    )
+    assert "deprecated acquisition command" in bills
+    assert "commoner-probe bills" in bills
+
+    debates = deprecation_message(
+        "crawl-debates",
+        argparse.Namespace(
+            out="data/out", loksabhas="18", sessions=None,
+            max_records=None, sleep=0.5, reset=False,
+        ),
+    )
+    assert "commoner-probe debates" in debates
+
+
+def test_reset_is_not_offered_where_commoner_probe_has_no_such_flag():
+    """A replacement command a caller cannot run is worse than no advice.
+
+    `commoner-probe sansad` takes `--reset`. Its `bills` and `debates`
+    subcommands do not. The message therefore drops the flag for those two and
+    says what to do instead.
+    """
+    args = argparse.Namespace(
+        out="data/out", house="ls", bill_type=None, max_records=None,
+        sleep=None, api_url=None, dry_run=False, reset=True,
+    )
+    command = build_commoner_probe_command("crawl-bills", args)
+    assert "--reset" not in command
+
+    message = deprecation_message("crawl-bills", args)
+    assert "--reset has no commoner-probe equivalent" in message
+
+
+def test_every_generated_command_uses_flags_commoner_probe_accepts():
+    """The whole point of the message is that a caller can paste and run it.
+
+    This walks each acquisition command, builds its replacement, and checks
+    every emitted flag against the installed probe's own `--help`. It fails
+    when probe renames or drops a flag, which is the drift no reader catches.
+    """
+    import re
+    import shutil
+    import subprocess
+    import sys
+    from pathlib import Path as _Path
+
+    # Look beside the running interpreter first. A venv's console scripts sit
+    # next to its python, and PATH often does not include that directory when
+    # pytest runs as `.venv/bin/python -m pytest`. Falling straight to
+    # shutil.which skipped this check on exactly the setup it is written for.
+    candidate = _Path(sys.executable).parent / "commoner-probe"
+    probe = str(candidate) if candidate.exists() else shutil.which("commoner-probe")
+    if probe is None:
+        import pytest
+        pytest.skip("commoner-probe console script not found")
+
+    cases = {
+        "crawl": argparse.Namespace(
+            topic="t", out="o", house="ls", from_date=None, to_date=None,
+            qtype=None, sessions=None, limit=None, max_buckets=None,
+            max_records=None, sleep=1.0, no_download=True, reset=True,
+            with_entities=True,
+        ),
+        "neva-crawl": argparse.Namespace(
+            portal="p", state_code="GJ", out="o", assemblies="15", sleep=1.0,
+            no_download=True, no_member_details=True, sessions_limit=None,
+        ),
+        "crawl-bills": argparse.Namespace(
+            out="o", house="ls", bill_type="government", max_records=5,
+            sleep=1.0, api_url="http://x", dry_run=True, reset=True,
+        ),
+        "crawl-debates": argparse.Namespace(
+            out="o", loksabhas="18", sessions="1", max_records=5, sleep=1.0,
+            reset=True,
+        ),
+    }
+    for name, args in cases.items():
+        command = build_commoner_probe_command(name, args)
+        helptext = subprocess.run(
+            [probe, command[1], "--help"], capture_output=True, text=True
+        ).stdout
+        accepted = set(re.findall(r"--[a-z-]+", helptext))
+        emitted = {token for token in command if token.startswith("--")}
+        assert not emitted - accepted, (name, sorted(emitted - accepted))
