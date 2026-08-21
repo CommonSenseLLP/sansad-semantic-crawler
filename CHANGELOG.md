@@ -11,6 +11,33 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Fixed
+
+- **This moves a published number, in one direction. Re-run
+  `analyse-discourse` on any corpus, then re-read every evasion rate computed
+  from it.** `FEDERAL_DEFLECTION`'s state-subject pattern required a copula:
+  `\b(?:is|are)\s+(?:a|an)\s+[Ss]tate\s+[Ss]ubject\b`. Indian legislative
+  English drops it. "Agriculture **being** a State subject, there is no
+  investment..." matched nothing. The pattern now accepts `being`.
+
+  **Measured by zero-hour over 489,469 answered records (REQ-0072):** 34,632
+  answers mention "State subject", 5,542 match the shipped copula pattern, and
+  3,080 use the participle. Of those, 2,982 match no copula, and **518 carry no
+  label from any tier at all**.
+
+  **Two kinds of record move, and only the first is pure recall.** The 518
+  unlabelled records gain `FEDERAL_DEFLECTION`, which raises both the evasive
+  count and the classified denominator. The other 2,464 already carry a label
+  from some other pattern, and `FEDERAL_DEFLECTION`'s 0.92 confidence outranks
+  it. Where that old label was substantive, the evasion rate rises a second
+  time. Where it was evasive, only the label distribution changes.
+
+  **That precedence is not new and is not introduced here.** The copula form
+  already outranks `ACCEPTED` and `REJECTED` today at the same confidence. The
+  alternation makes the participle behave exactly as the copula does. Whether
+  a state-subject clause should outrank a substantive disclosure is a separate
+  question, and it applies to the shipped copula pattern first.
+
 ## [2.7.0] — 2026-08-20
 
 ### Changed

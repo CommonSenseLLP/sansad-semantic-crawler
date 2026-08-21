@@ -407,6 +407,54 @@ class NewRegexV2PatternsTest(unittest.TestCase):
         )
         self.assertEqual(result.label, "FEDERAL_DEFLECTION")
 
+    def test_participial_state_subject_fires_federal_deflection(self):
+        """REQ-0072. Indian legislative English drops the copula in this exact
+        construction, and the pattern required it. Verbatim from the request,
+        source key ``LS|S|734|2000-05-17``, Minister of Agriculture. zero-hour
+        measured 2,982 answers using this form and invisible to the pattern,
+        of which 518 carried no label from any tier at all.
+        """
+        from commoner_analyse.discourse import CHANNEL_QA
+        result = classify_response(
+            "Agriculture being a State subject, there is no investment in "
+            "agriculture directly by the Central Government in the States.",
+            channel=CHANNEL_QA,
+        )
+        self.assertEqual(result.label, "FEDERAL_DEFLECTION")
+
+    def test_the_participle_and_the_copula_agree(self):
+        """The alternation adds recall. It does not create a second behaviour.
+
+        The two forms make the same claim, so they must reach the same label at
+        the same confidence. A drift between them is the defect returning.
+        """
+        from commoner_analyse.discourse import CHANNEL_QA
+        pairs = [
+            ("Agriculture is a State subject, so the Centre does not intervene.",
+             "Agriculture being a State subject, the Centre does not intervene."),
+            ("Health is a State subject and States decide.",
+             "Health being a State subject, States decide."),
+        ]
+        for copula, participle in pairs:
+            with self.subTest(participle=participle):
+                first = classify_response(copula, channel=CHANNEL_QA)
+                second = classify_response(participle, channel=CHANNEL_QA)
+                self.assertEqual(first.label, second.label)
+                self.assertEqual(first.confidence, second.confidence)
+
+    def test_the_copula_form_still_matches(self):
+        """Acceptance 3. The alternation must not move a copula match."""
+        from commoner_analyse.discourse import CHANNEL_QA
+        for text in (
+            "Land is a state subject under the Seventh Schedule.",
+            "These are a State subject and rest with the States.",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(
+                    classify_response(text, channel=CHANNEL_QA).label,
+                    "FEDERAL_DEFLECTION",
+                )
+
     def test_concurrent_list_fires_federal_deflection(self):
         from commoner_analyse.discourse import CHANNEL_QA
         result = classify_response(
