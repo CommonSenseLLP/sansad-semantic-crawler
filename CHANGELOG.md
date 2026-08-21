@@ -13,6 +13,27 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ### Changed
 
+- **No private sibling repository is named anywhere in this repository now.**
+  This package is public and headed for PyPI. Four files that ship in the
+  distribution named a private repo in a docstring: `staging.py`,
+  `fragment_merge.py`, `tiers.py` and `export.py`. `SCOPE.md`,
+  `CONTRIBUTING.md` and this file named private repos too, though none of the
+  three ships in the distribution.
+
+  Every reference now describes the consumer by role. A verified sdist build
+  carries no such name.
+
+  **Historical entries below were edited**, which a changelog normally must not
+  do. The substance of every entry is unchanged. Only the name of a private
+  repository is replaced by its role. The alternative left a public record
+  advertising repositories that nobody outside this organisation can open.
+
+- `build_glossary`'s docstring described a licensing firewall that the AGPL
+  relicence removed on 2026-08-20. It now gives the real reasons a consumer
+  stays at arm's length and records the licence as history.
+
+### Changed
+
 - **Import three `commoner-probe` modules under their current names.**
   `commoner_probe.committees` becomes `commoner_probe.committee_report_api`,
   `commoner_probe.sansad` becomes `commoner_probe.parliament_qa_api`, and
@@ -38,7 +59,7 @@ researchers who pin a tag and want to know what they are pinning to.
   English drops it. "Agriculture **being** a State subject, there is no
   investment..." matched nothing. The pattern now accepts `being`.
 
-  **Measured by zero-hour over 489,469 answered records (REQ-0072):** 34,632
+  **Measured by the requesting repo over 489,469 answered records (REQ-0072):** 34,632
   answers mention "State subject", 5,542 match the shipped copula pattern, and
   3,080 use the participle. Of those, 2,982 match no copula, and **518 carry no
   label from any tier at all**.
@@ -64,8 +85,8 @@ researchers who pin a tag and want to know what they are pinning to.
   major", and dropping a Python version removes support. This release reads
   that rule as scoped to the API, not to packaging metadata. Three facts back
   it. `commoner-probe` made the same 3.10 to 3.11 move at its own **0.15.0**, a
-  minor. Neither consumer runs 3.10: academiaindia builds on 3.11 and
-  theright2read on 3.12. And pip refuses the install rather than breaking at
+  minor. Neither consumer runs 3.10. One builds on 3.11 and the other on
+  3.12. And pip refuses the install rather than breaking at
   runtime, so a 3.10 consumer keeps the tag it already pins.
 
 - **BREAKING: the minimum Python is now 3.11, and `commoner-probe` is pinned
@@ -141,7 +162,7 @@ researchers who pin a tag and want to know what they are pinning to.
   and `SCOPE.md` all move together.
 - **The change removes a licensing firewall inside CommonerLLP.** Three AGPL
   sibling repos consume this package. The noncommercial licence forbade
-  linking, so `zero-hour` calls the CLI from a sibling checkout and passes
+  linking, so one sibling calls the CLI from a checkout and passes
   files both ways. It may now depend on the package and import it.
 
 ### Added
@@ -225,9 +246,9 @@ toward the correct value — re-run `mp-dossier`, `ministry-dossier` and
 ### Added
 
 - **`tiers.py` — tier capability and the outcome-rate guard** (REQ-0058, from
-  `zero-hour`). A classification tier can be structurally incapable of reaching
+  a sibling repo). A classification tier can be structurally incapable of reaching
   one label family. Averaging such a tier with a tier that reads the whole
-  answer moves the rate, plausibly and silently; `zero-hour` measured 11.3
+  answer moves the rate, plausibly and silently. The requesting repo measured 11.3
   points of it. `TIER_CAPABILITY` records what each tier can reach,
   `two_sided()` and `rate_publishable()` answer the question, and
   `outcome_rate()` refuses a one-sided tier, an unregistered tier, a
@@ -259,7 +280,7 @@ toward the correct value — re-run `mp-dossier`, `ministry-dossier` and
 ## [2.3.0] — 2026-08-17
 
 Twenty commits since `v2.2.0`, none of them released. Downstream pins to a tag,
-so every fix below has been invisible to `theright2read` and `academiaindia`
+so every fix below stayed invisible to the two pinned consumers
 since 2026-07-08. That is the reason for the release; the size of the surface
 is the reason it takes the minor slot rather than the patch slot.
 
@@ -353,12 +374,12 @@ is the reason it takes the minor slot rather than the patch slot.
   adds `discourseSummary` (corpus-wide evasion-rate rollup) and `ministryDiscourse`
   (per-ministry rollup from `ministry_summary_qa.jsonl`) to its output whenever
   `analyse-discourse`/`analyse-ministry` have been run for the corpus — omitted
-  entirely (not zeroed) otherwise. Lets consumers like `theright2read`'s
+  entirely (not zeroed) otherwise. Lets a consumer's
   `build_parliament_libraries.py` drop their local re-derivation of the same numbers.
 - **`commoner-analyse export-glossary`** — writes the discourse label taxonomy
   (label, description, substantive/evasive/unclassified function) as a
   standalone, corpus-independent JSON/JS artifact. For consumers like
-  `zero-hour` that read generated data across a licensing boundary rather
+  a sibling that reads generated data across a licensing boundary rather
   than importing this package, so their copy of the taxonomy can't silently
   drift the way a hand-copied one did.
 
@@ -862,7 +883,7 @@ between `discourse.py` and `classifiers/llm.py`, hand-pinned
 - **Schema additions only.** `analysis_discourse.jsonl` records may now
   carry `classifier: 'llm_discourse_v1'` and `label:
   'FACTUAL_DISCLOSURE'` (only when LLM tier is enabled).
-- **Consumers** pinning `@v0.5.0` (`theright2read`, `academiaindia`)
+- **Consumers** pinning `@v0.5.0` (two sibling repos)
   remain compatible. Bump to `@v0.6.0` is opt-in.
 
 ### Tests

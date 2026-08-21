@@ -24,7 +24,7 @@ named buckets rather than resolved silently:
 
 The buckets are disjoint and, orphans aside, they partition the target.
 
-Ported from ``zero-hour`` under REQ-0059. Nothing here knows what a ministry is.
+Ported from a sibling repo under REQ-0059. Nothing here knows what a ministry is.
 """
 
 from __future__ import annotations

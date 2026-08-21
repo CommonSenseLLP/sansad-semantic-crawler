@@ -3,11 +3,9 @@
 Thanks for considering a contribution.
 
 This is a small, deliberately scoped public-interest library. The
-codebase optimises for stability over feature breadth: the package is
-used by sister projects ([theright2read](https://github.com/CommonerLLP/theright2read.github.io)
-and [academiaindia](https://github.com/CommonerLLP/academiaindia))
-which pin a specific tag and expect the API surface to behave the same
-way for the lifetime of that pin.
+codebase optimises for stability over feature breadth. Consumers pin a
+specific tag. They expect the API surface to behave the same way for the
+lifetime of that pin.
 
 Read this whole file before opening a PR; most disagreements with
 reviewers are about scope, not code.
@@ -149,9 +147,7 @@ Consumers of this package pin a specific `@v0.X.Y` tag in their
 `requirements.txt`. **Do not propose changes that silently break a
 pinned consumer.** If a backward-incompatible change is genuinely
 necessary, document it in the PR and we will plan a coordinated
-upgrade with the known consumers (currently
-[theright2read](https://github.com/CommonerLLP/theright2read.github.io)
-and [academiaindia](https://github.com/CommonerLLP/academiaindia)).
+upgrade with the known consumers.
 
 ## Licence
 
