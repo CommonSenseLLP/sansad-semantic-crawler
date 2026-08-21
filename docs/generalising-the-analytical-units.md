@@ -89,14 +89,44 @@ explicit decision.
 
 ## Open questions
 
-1. **Does a second taxonomy exist to prove the design?** A profile format with
-   one profile is a guess. A sibling repo holds question-aware rules that an
-   open consolidation request already covers. That is the nearest candidate.
-2. **What is the artefact contract?** `aggregate --by` needs a defined input
-   row shape. Today that shape is `analysis_discourse.jsonl`, which carries
-   parliamentary fields.
-3. **Who is the first non-parliament caller?** A generalisation with no waiting
-   consumer is speculative. The public-finance and city-data repos are nearest.
+**Two of the three closed on 2026-08-21, the day this note landed.** A sibling
+repo already built the same design independently, for a different domain.
+
+1. ~~**Does a second taxonomy exist to prove the design?**~~ **Yes.** A sibling
+   repo classifies officers into four categories with an `Unknown` fifth. It
+   groups them into a family the way this package groups labels into evasive
+   and substantive. It then gates publication on that grouping. See below.
+2. **What is the artefact contract?** Still open. `aggregate --by` needs a
+   defined input row shape. Today that shape is `analysis_discourse.jsonl`,
+   which carries parliamentary fields.
+3. ~~**Who is the first non-parliament caller?**~~ **The same repo.** It is not
+   waiting for the capability. It wrote its own.
+
+## The second taxonomy, and what it proves
+
+The parallel is structural rather than superficial.
+
+| this package | the sibling repo |
+|---|---|
+| labels grouped into evasive and substantive | categories grouped into one family |
+| `rate_publishable` refuses a rate a one-sided tier fed | a gate holds every aggregate unpublishable until all checks pass |
+| `outcome_rate` reports each drop by reason | the gate returns a verdict plus a list of reasons |
+| `UNCLASSIFIED` stays out of the denominator | a coverage floor, so an abstention rate cannot be headlined |
+| gate 2, pooled against stratified | a per-category bias bound |
+
+Its own comment states the thesis this package states in `tiers.py`. Aggregates
+stay unpublishable until every check passes.
+
+**It also goes further than this package does.** It carries a precision
+harness. That harness holds a macro F1 across categories. It holds a recall
+floor for the group whose erasure it guards against. It holds a minimum
+gold-set size. REQ-0058 deliberately did not port a precision harness here,
+because this repo holds no adjudicated tier. That repo built one.
+
+**What this changes.** The generalisation is no longer speculative. Two repos
+reached the same design from different domains, and neither can use the other's
+code. That is the case for a shared implementation, and it is also the strongest
+argument that the unit is the artefact rather than the domain.
 
 ## Sequence, if it proceeds
 
