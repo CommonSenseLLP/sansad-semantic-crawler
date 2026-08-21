@@ -1,95 +1,76 @@
 # Commoner Analyse
 
-A config-driven domain-analysis layer over records that
+The domain-analysis layer over Indian parliamentary records.
 [`commoner-probe`](https://github.com/CommonerLLP/commoner-probe) acquires
-from the Indian Parliament and state legislatures — Lok Sabha and Rajya
-Sabha questions, standing-committee reports, and NeVA state-assembly
-records — across arbitrary topics. Acquisition is `commoner-probe`'s job;
-this package classifies, tags, aggregates, and cross-references what it
-acquires. Topic profiles (what to search for, what to tag, what to keep)
-live in JSON, so other projects can add or extend subjects without editing
-analysis code. The tool's primary users are researchers building
-topic-specific corpora of parliamentary text. It is not a watchdog, a
-summariser, or a search engine.
+them. This package classifies, aggregates, and cross-references them.
 
+It reads Lok Sabha and Rajya Sabha questions, standing-committee reports,
+and NeVA state-assembly records. Topic profiles live in JSON, so a project
+adds a subject without editing analysis code.
 
-## What it does
+It is not a watchdog, a summariser, or a search engine. It builds corpora
+and audits for researchers.
 
-- Classifies Lok Sabha/Rajya Sabha questions and standing-committee reports
-  by topic, using records `commoner-probe` acquires from
-  `elibrary.sansad.in`, `rsdoc.nic.in`, and 16 LS DRSCs + 8 RS DRSCs.
-Offers the following analytical support:
-- **ATR Linkage Engine.** Automatically links Action Taken Reports back to
-  original committee recommendations based on title citations, closing the
-  accountability loop between instructions and executive action.
-- **Instrumented Discourse Tier (v2).** A deterministic response classifier
-  refined through LLM-tier analysis of real-world corpora. It assigns
-  functional discourse labels such as `CONSTITUTIONAL_DEFAULT`,
-  `FEDERAL_DEFLECTION`, `DATA_WITHHELD`, `SCOPE_NARROWED`,
-  `SUBSTITUTED`, and `FACTUAL_DISCLOSURE`.
-- **Voice and Agency Analysis.** Each discourse row can also carry
-  additive surface-analysis fields describing *how* the response is
-  written: `voice` (`active` / `passive` / `mixed`), `passive_ratio`,
-  `agent_named`, and `agent_terms`.
-- **Graph Analyses.** Ingests all pipeline outputs
-  into a single SQLite database for fast cross-file queries and graph
-  navigation.
-- **Audit Generators.** CLI subcommands (`mp-dossier`, `ministry-dossier`)
-  that produce Markdown-based briefings and audit reports, quantifying
-  data omission rates and institutional default status.
+## Install
 
-## What this is — and isn't
+Not on PyPI yet. Install from a release tag:
 
-This tool builds *corpora* and *audits*. Visibility of parliamentary
-outputs is not the same as comprehension of them.
+```bash
+pip install "commoner-analyse @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
+```
 
-- **"Audit-grade" here means deterministic, traceable, and linked.**
-  The regex classifier always produces the same output for the same
-  input, and `_runs.jsonl` records exactly which profile bytes produced
-  which records. The addition of the ATR Linkage Engine enables the
-  bidirectional tracking of institutional responsibility.
-- **Instrumented, not authoritative.** The classification labels are
-  technical hypotheses based on linguistic patterns of institutional
-  evasion. They are a triage signal for researchers, not a verdict.
+Extras are `[http]`, `[pdf]`, `[embeddings]`, `[llm]` and `[all]`. Add one
+in the usual brackets:
 
-## Semantic analyses
+```bash
+pip install "commoner-analyse[pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
+```
 
-The package exposes three distinct analytical layers over the same
-corpus. They are intentionally separate because they answer different
-questions and produce different outputs.
+Pin the same line in a project's `requirements.txt`:
 
-### 1. Topic classification (`analysis.jsonl`)
+```text
+commoner-analyse[http,pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1
+```
 
-This layer answers:
+`commoner-probe` is the one required third-party dependency. Beyond it the
+package runs on a clean Python 3.11+ install. Without `[http]` it falls back
+to `urllib`. Without `[pdf]` it falls back to the `pdftotext` system binary.
 
-- Is this record about the topic profile I care about?
-- Which tags or themes fired?
+## Quick start
 
-Depending on the topic profile, the crawler can classify each crawled
-record through one of four modes:
+```bash
+# Core pipeline
+commoner-analyse crawl             # Fetch metadata and PDFs
+commoner-analyse crawl-committees  # Crawl standing-committee reports
+commoner-analyse parse             # Topic classification -> analysis.jsonl
+commoner-analyse export            # Aggregate for sites
+commoner-analyse export-glossary   # Discourse taxonomy as standalone JSON/JS
+commoner-analyse build-graph       # Ingest outputs into SQLite
 
-- `regex` — deterministic `tag_rules` over titles, question text, answer
-  text, or extracted text
-- `embeddings` — anchor-phrase similarity against an external Sentence
-  Transformers model
-- `llm` — JSON tagging against a chat-completions style endpoint
-- `ensemble` — unions, intersects, or weights multiple classifier members
+# Response / audit pipeline
+commoner-analyse extract-answers      # Response extraction -> answers.jsonl
+commoner-analyse analyse-discourse    # Discourse + voice/agency
+commoner-analyse analyse-weights      # Per-person / per-party weights
 
-This layer writes `analysis.jsonl`. Each row is still a topic-level
-classification: `tags`, `matches`, `score`, excerpt, and any
-mode-specific metadata.
+# Research / audit subcommands
+commoner-analyse extract-atr-linkage  # Map ATRs to original reports
+commoner-analyse mp-dossier           # MP-level briefing
+commoner-analyse ministry-dossier     # Ministry audit report
+commoner-analyse analyse-ministry     # Aggregate evasion patterns
+commoner-analyse mp-summary           # Aggregate MP assertion rates
+```
 
-### 2. Response discourse analysis (`analysis_discourse.jsonl`)
+## The three analytical layers
 
-This layer answers:
+They stay separate because they answer different questions.
 
-- What is the political function of the ministry's response?
-- Is the answer substantive, evasive, withheld, or jurisdictionally
-  narrowed?
+**1. Topic classification** writes `analysis.jsonl`. Does this record
+belong in my corpus, and which tags fired? Four modes: `regex` (the
+audit-grade deterministic path), `embeddings`, `llm`, and `ensemble`.
 
-It runs on extracted response text, not on raw metadata. It is produced
-by the `extract-answers` → `analyse-discourse` path and is separate from
-topic tagging.
+**2. Response discourse analysis** writes `analysis_discourse.jsonl`. What
+is the political function of the ministry's response? It runs on extracted
+response text through `extract-answers` then `analyse-discourse`.
 
 The current discourse label set is:
 
@@ -121,103 +102,34 @@ The current discourse label set is:
   new commitment
 - `UNCLASSIFIED` — no current deterministic pattern matched
 
-Channel matters:
+Channel matters. `qa` covers written question answers. `committee` covers
+ATR and committee-response text. `dfg` passthrough rows carry null
+discourse fields, because a recommendation exists before any response does.
 
-- `qa` is used for written parliamentary question answers
-- `committee` is used for ATR / committee-response text
-- `dfg` passthrough rows carry null discourse fields because
-  recommendations exist before any response does
+An optional LLM second pass only touches rows the regex tier left
+`UNCLASSIFIED`.
 
-When enabled, an optional LLM second pass only touches rows the regex
-tier left `UNCLASSIFIED`.
+**3. Voice and agency** is additive on top of layer 2. Is the response
+active, passive, or mixed, and does it name an actor? The fields are
+`voice`, `passive_ratio`, `agent_named` and `agent_terms`. It is
+deterministic and dependency-free, using conservative heuristics rather
+than a full NLP parser.
 
-### 3. Voice and agency surface analysis
+Downstream commands compose these layers rather than recomputing them.
+`analyse-ministry` rolls them up by ministry, `mp-summary` by asking MP,
+`build-graph` indexes them in SQLite, and the dossier commands turn them
+into Markdown.
 
-This is an additive layer on top of discourse analysis. It answers:
+## What "audit-grade" means here
 
-- Is the response written in active, passive, or mixed voice?
-- Does the response name an actor, or erase one?
+Deterministic, traceable, and linked. The regex classifier returns the
+same output for the same input. `_runs.jsonl` records which profile bytes
+produced which records. The ATR Linkage Engine maps Action Taken Reports
+back to the recommendations they answer.
 
-The per-record fields are:
-
-- `voice` — `active`, `passive`, or `mixed`
-- `passive_ratio` — share of detected voice cues that are passive
-- `agent_named` — whether an institutional actor is named
-- `agent_terms` — the actor terms found, e.g. `"the Ministry"` or
-  `"the Central Government"`
-
-This layer is deterministic and dependency-free. It uses conservative
-heuristics rather than a full NLP parser so it can ship in the base
-package without introducing a heavy runtime dependency.
-
-### What the analytical layers are for
-
-- Use topic classification to decide which records belong in your corpus
-  and what themes they carry.
-- Use discourse labels to decide what kind of institutional response a
-  ministry gave.
-- Use voice and agency to decide how explicitly or evasively that
-  response is phrased at the sentence surface.
-
-Downstream commands compose these layers rather than recomputing them:
-
-- `analyse-ministry` rolls discourse labels and voice/agency up into
-  ministry-level summaries
-- `mp-summary` rolls them up by asking MP
-- `build-graph` indexes them in SQLite
-- the dossier commands turn them into Markdown briefings
-
-## Install
-
-The package is not on PyPI yet (publication is planned for a future
-release). Install directly from the GitHub release tag:
-
-```bash
-pip install "commoner-analyse @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
-
-# Optional extras (pick what you need):
-pip install "commoner-analyse[http] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
-pip install "commoner-analyse[pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
-pip install "commoner-analyse[embeddings] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
-pip install "commoner-analyse[llm] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
-pip install "commoner-analyse[all] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1"
-```
-
-For a project, pin the same line in your `requirements.txt`:
-
-```text
-commoner-analyse[http,pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.7.1
-```
-
-The one required third-party dependency is `commoner-probe` — the
-acquisition engine and single source of truth for crawling. Beyond that the
-package runs on a clean Python 3.11+ install: the optional `[http]`/`[pdf]`
-extras fall back to `urllib` for HTTP and to `pdftotext` (system binary) for
-PDF extraction.
-
-## Quick start
-
-```bash
-# Core Pipeline
-commoner-analyse crawl             # Fetch metadata and PDFs
-commoner-analyse crawl-committees  # Crawl standing-committee reports
-commoner-analyse parse             # Topic classification -> analysis.jsonl
-commoner-analyse export            # Aggregate for sites (merges discourse/ministry summaries when present)
-commoner-analyse export-glossary   # Discourse label taxonomy as standalone JSON/JS data
-commoner-analyse build-graph       # Ingest pipeline outputs into SQLite
-
-# Response / audit pipeline
-commoner-analyse extract-answers      # Response extraction -> answers.jsonl
-commoner-analyse analyse-discourse    # Discourse + voice/agency -> analysis_discourse.jsonl
-commoner-analyse analyse-weights      # Per-person / per-party weights
-
-# Research / audit subcommands
-commoner-analyse extract-atr-linkage  # Map ATRs to original reports
-commoner-analyse mp-dossier           # Generate MP-level briefing
-commoner-analyse ministry-dossier     # Generate Ministry audit report
-commoner-analyse analyse-ministry     # Aggregate evasion patterns
-commoner-analyse mp-summary           # Aggregate MP assertion rates
-```
+**The labels are instrumented, not authoritative.** They are technical
+hypotheses about linguistic patterns of institutional evasion. Treat them
+as a triage signal, not a verdict.
 
 ## Output layout
 
@@ -252,49 +164,38 @@ data/<topic>/
   mp_dossiers/         Markdown MP briefings (after `mp-dossier`)
 ```
 
-Records carry a `run_id` field that maps to a row in `_runs.jsonl`. To
-verify which topic-profile bytes produced a record, look up its run.
+Records carry a `run_id` that maps to a row in `_runs.jsonl`. To verify
+which topic-profile bytes produced a record, look up its run.
 
 ## Design notes
 
-- **Stability and Maturity.** As of v1.0.0, the core schemas and pipeline
-  are stable. The tool prioritizes verbatim fidelity in extraction and
-  traceability in classification.
-- **Crawling is delegated to `commoner-probe`** — the one required
-  third-party dependency and the single source of truth for acquisition.
-  Other third-party packages (`requests`, `pdfminer.six`, embeddings/LLM)
-  remain optional extras.
-- **`pdfminer.six` is optional.** `pdftotext` (the system binary) is
-  preferred because parliamentary PDFs lean heavily on layout for
-  tables; `pdfminer.six` is the fallback.
-- **Stable keys.** Each record's `key` is derived from
+- **Acquisition is delegated to `commoner-probe`.** It is the single source
+  of truth for crawling and the one required dependency.
+- **`pdftotext` is preferred over `pdfminer.six`.** Parliamentary PDFs lean
+  on layout for tables. `pdfminer.six` is the fallback.
+- **Stable keys.** A record's `key` comes from
   `(house, qtype, qno, answer-date)` for questions, and from
   `(house, committee, report_no[, lokSabha])` for committee reports.
-- **Form is data, not metadata.** Where a committee report has been
-  laid (Speaker only, Lok Sabha only, both houses) is a political
-  distinction with consequences. The crawler surfaces it as
-  `presented_via` rather than burying it inside dates.
+- **Form is data, not metadata.** Where a committee report was laid
+  (Speaker only, Lok Sabha only, both houses) is a political distinction.
+  It surfaces as `presented_via` rather than hiding inside dates.
+- Core schemas and the pipeline are stable as of v1.0.0.
 
 ## Status
 
-The full per-release timeline lives in [CHANGELOG.md](CHANGELOG.md).
-The latest published release is **v2.0.0**. `main` may move ahead with
-additive features before the next tag; check the changelog's
-`Unreleased` section for post-release work.
+The per-release timeline lives in [CHANGELOG.md](CHANGELOG.md). `main` may
+carry additive work ahead of the newest tag. Check the changelog's
+`Unreleased` section.
 
 ## Licence
 
 [GNU Affero General Public License v3.0 or later](https://www.gnu.org/licenses/agpl-3.0.html).
 
-The package was PolyForm Noncommercial 1.0.0 until 2026-08-20. AGPL
-replaces it. Anyone who runs a modified version as a network service
-must publish their changes. Commercial use is permitted on those terms.
-
-The change also removes a licensing firewall inside CommonerLLP. Three
-AGPL sibling repos consume this package. Under the noncommercial licence
-they could not link it, so they called the CLI in a separate process.
+The package was PolyForm Noncommercial 1.0.0 until 2026-08-20. Commercial
+use is now permitted. Anyone who runs a modified version as a network
+service must publish their changes.
 
 ## Citation
 
-A `CITATION.cff` at the repository root carries machine-readable
-metadata; GitHub renders a "Cite this repository" button against it.
+`CITATION.cff` at the repository root carries machine-readable metadata.
+GitHub renders a "Cite this repository" button against it.
