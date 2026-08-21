@@ -72,10 +72,10 @@ capability underneath serves any corpus.
 
 ## What this is NOT
 
-**It is not a proposal to move parliament code to `zero-hour`.** That was
-considered and set aside. Moving makes `zero-hour` bigger and this package
-smaller. It reaches no new repo. Generalising reaches the ten that already
-hand-roll.
+**It is not a proposal to move the parliament code to a consuming repo.** That
+was considered and set aside. A move makes the destination bigger and this
+package smaller. It reaches no new repo. Generalising reaches the ten that
+already hand-roll.
 
 **It is not a rewrite.** Four modules are already domain-free and need only a
 CLI surface: `inference_gates`, `staging`, `fragment_merge`, `tiers`. None of
