@@ -13,6 +13,23 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ### Added
 
+- **Five CLI commands that assume no legislature.** `normalize-names`,
+  `check-pooling`, `check-units`, `check-claims` and `merge-fragments`.
+
+  Four modules here already knew nothing about a legislature: `names`,
+  `inference_gates`, `staging` and `fragment_merge`. None appeared in the CLI,
+  and exactly one Python import of this package exists across every sibling
+  repository. The capability was unreachable in practice.
+
+  An audit found what that cost. Ten files across five repositories strip
+  honorifics by hand. Six of the seven files that compute a grouped rate carry
+  no small-denominator guard at all.
+
+  **Each check exits non-zero on a refusal.** A gate that only prints is a gate
+  a pipeline ignores.
+
+### Added
+
 - **`names.py` — canonical forms for a personal name, with no domain
   knowledge.** `normalize_name` and `slugify` move here from `entities.py`.
   Both are re-exported from `entities`, so no caller changes.
