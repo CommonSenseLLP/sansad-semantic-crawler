@@ -11,6 +11,8 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.7.1] — 2026-08-20
+
 ### Fixed
 
 - **This moves a published number, in one direction. Re-run
