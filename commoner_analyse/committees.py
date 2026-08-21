@@ -24,7 +24,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 
-from commoner_probe.committees import (  # noqa: F401  (re-export)
+from commoner_probe.committee_report_api import (  # noqa: F401  (re-export)
     DEFAULT_LOK_SABHA,
     LS_COMMITTEES,
     REPORT_TYPE_ACTION_TAKEN,

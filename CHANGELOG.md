@@ -11,6 +11,22 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Changed
+
+- **Import three `commoner-probe` modules under their current names.**
+  `commoner_probe.committees` becomes `commoner_probe.committee_report_api`,
+  `commoner_probe.sansad` becomes `commoner_probe.parliament_qa_api`, and
+  `commoner_probe.neva` becomes `commoner_probe.assembly_portal`. probe
+  deprecated the old names, and it raises a `DeprecationWarning` on each. The
+  suite ran with three of them and now runs with none.
+
+  **No public surface changes here.** Only the module this package imports
+  FROM changes. Every name this package re-exports stays exactly as it was.
+  Verified against probe 0.16.0: each new module exposes an identical public
+  surface to the module it replaces, so the swap is a pure alias.
+
+  The four compat tests move with it, because they patched the old paths.
+
 ## [2.7.1] — 2026-08-20
 
 ### Fixed

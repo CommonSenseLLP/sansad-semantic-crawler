@@ -3,7 +3,7 @@ delegated to commoner-probe.
 
 State-assembly acquisition (questions, unlisted questions, members, papers to
 be laid) is delegated to the published ``commoner-probe`` package (the single
-source of truth — ``commoner_probe.neva.StateAssemblyCrawler``). This module
+source of truth — ``commoner_probe.assembly_portal.StateAssemblyCrawler``). This module
 used to carry a full local re-implementation as a fallback for when the probe
 was absent; that fallback was dead code (``commoner-probe`` is a required
 dependency that ``sansad.py``/``committees.py`` already import
@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from commoner_probe.neva import StateAssemblyCrawler
+from commoner_probe.assembly_portal import StateAssemblyCrawler
 
 from . import __version__
 from ._probe_compat import with_crawled_at as _with_crawled_at

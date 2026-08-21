@@ -1,7 +1,7 @@
 """End-to-end check that SSC's RS semantic filter runs at acquisition time.
 
 Unlike test_sansad_compat (which fakes the probe), this drives the *real*
-``commoner_probe.sansad.SansadProbe`` (>=0.5.1) through ``SansadCrawler``, with
+``commoner_probe.parliament_qa_api.SansadProbe`` (>=0.5.1) through ``SansadCrawler``, with
 only the HTTP boundary (``rs_search_session``) and the network roster
 (``_enrich_askers``) stubbed. It pins the two behaviours the append-time filter
 got wrong: ``--max-records`` must cap topic-matching rows (not acquired rows),

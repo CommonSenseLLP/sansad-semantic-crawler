@@ -31,7 +31,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-from commoner_probe.sansad import (  # noqa: F401  (re-export)
+from commoner_probe.parliament_qa_api import (  # noqa: F401  (re-export)
     SansadProbe,
     date_in_range,
     md_value,
