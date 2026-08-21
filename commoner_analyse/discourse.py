@@ -122,8 +122,13 @@ _FEDERAL_DEFLECTION = _LabelDef(
     "Uses federalism/State Subjects to dodge Central responsibility for national standards.",
     _compile([
         r"library\s+is\s+a\s+state\s+subject",
-        # Broader state-subject dodge pattern (mined from Azad corpus UNCLASSIFIED)
-        r"\b(?:is|are)\s+(?:a|an)\s+[Ss]tate\s+[Ss]ubject\b",
+        # Broader state-subject dodge pattern (mined from Azad corpus UNCLASSIFIED).
+        # `being` is not optional decoration. Indian legislative English drops the
+        # copula in this exact construction, and the participial form carries the
+        # same federal dodge: "Agriculture being a State subject, ...". Measured
+        # over 489,469 answered records, 2,982 use the participle and match no
+        # copula, and 518 of those carry no label from any tier (REQ-0072).
+        r"\b(?:is|are|being)\s+(?:a|an)\s+[Ss]tate\s+[Ss]ubject\b",
         r"\b(?:Concurrent|[Cc]oncurrent)\s+[Ll]ist\b",
         r"\bunder\s+entry\s+\d+\s+of\s+the\s+[Ss]tate\s+List\b",
         r"\bSeventh\s+Schedule\b",
