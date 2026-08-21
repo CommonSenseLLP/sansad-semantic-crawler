@@ -20,10 +20,10 @@ TARGET_MODULE = "commoner_analyse.sansad"
 def reloaded_sansad(probe_class: type) -> Iterator[ModuleType]:
     """Reload the SSC sansad module with the commoner-probe SansadProbe patched.
 
-    Acquisition is delegated to ``commoner_probe.sansad.SansadProbe`` (a hard
+    Acquisition is delegated to ``commoner_probe.parliament_qa_api.SansadProbe`` (a hard
     dependency). We patch that class to a fake before re-importing the SSC module
     so ``SansadCrawler`` subclasses the fake; the re-exported helpers continue to
-    resolve from the real ``commoner_probe.sansad`` module.
+    resolve from the real ``commoner_probe.parliament_qa_api`` module.
     """
     original = sys.modules.pop(TARGET_MODULE, None)
     package = sys.modules.get("commoner_analyse")
@@ -31,7 +31,7 @@ def reloaded_sansad(probe_class: type) -> Iterator[ModuleType]:
     if package is not None and hasattr(package, "sansad"):
         delattr(package, "sansad")
     try:
-        with mock.patch("commoner_probe.sansad.SansadProbe", probe_class):
+        with mock.patch("commoner_probe.parliament_qa_api.SansadProbe", probe_class):
             yield REAL_IMPORT_MODULE(TARGET_MODULE)
     finally:
         sys.modules.pop(TARGET_MODULE, None)

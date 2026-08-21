@@ -18,7 +18,7 @@ TARGET_MODULE = "commoner_analyse.neva"
 def reloaded_neva(probe_class: type) -> Iterator[ModuleType]:
     """Reload the SSC neva module with the commoner-probe crawler patched.
 
-    Acquisition is delegated to ``commoner_probe.neva.StateAssemblyCrawler`` (a
+    Acquisition is delegated to ``commoner_probe.assembly_portal.StateAssemblyCrawler`` (a
     hard dependency). We patch that class to a fake before re-importing the SSC
     module so ``NevaStateCrawler`` subclasses the fake.
     """
@@ -28,7 +28,7 @@ def reloaded_neva(probe_class: type) -> Iterator[ModuleType]:
     if package is not None and hasattr(package, "neva"):
         delattr(package, "neva")
     try:
-        with mock.patch("commoner_probe.neva.StateAssemblyCrawler", probe_class):
+        with mock.patch("commoner_probe.assembly_portal.StateAssemblyCrawler", probe_class):
             yield REAL_IMPORT_MODULE(TARGET_MODULE)
     finally:
         sys.modules.pop(TARGET_MODULE, None)

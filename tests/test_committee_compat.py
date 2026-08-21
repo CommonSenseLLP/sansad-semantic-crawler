@@ -20,10 +20,10 @@ TARGET_MODULE = "commoner_analyse.committees"
 def reloaded_committees(probe_class: type) -> Iterator[ModuleType]:
     """Reload the SSC committees module with the commoner-probe probe patched.
 
-    Acquisition is delegated to ``commoner_probe.committees.CommitteeProbe`` (a
+    Acquisition is delegated to ``commoner_probe.committee_report_api.CommitteeProbe`` (a
     hard dependency). We patch that class to a fake before re-importing the SSC
     module so ``CommitteeCrawler`` subclasses the fake; the re-exported helpers
-    continue to resolve from the real ``commoner_probe.committees`` module.
+    continue to resolve from the real ``commoner_probe.committee_report_api`` module.
     """
     original = sys.modules.pop(TARGET_MODULE, None)
     package = sys.modules.get("commoner_analyse")
@@ -31,7 +31,7 @@ def reloaded_committees(probe_class: type) -> Iterator[ModuleType]:
     if package is not None and hasattr(package, "committees"):
         delattr(package, "committees")
     try:
-        with mock.patch("commoner_probe.committees.CommitteeProbe", probe_class):
+        with mock.patch("commoner_probe.committee_report_api.CommitteeProbe", probe_class):
             yield REAL_IMPORT_MODULE(TARGET_MODULE)
     finally:
         sys.modules.pop(TARGET_MODULE, None)
