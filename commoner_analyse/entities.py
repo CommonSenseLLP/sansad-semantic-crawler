@@ -106,41 +106,14 @@ lives outside the corpus directory. The ``weighting`` engine merges
 priors into numeric weights but never copies raw text into corpus output.
 """
 
-_HONORIFIC_RE = re.compile(
-    r"\b(Shri|Smt|Dr|Prof|Babu|Ven'ble|Kumari|Sushri|Sardar|Adv|Hon'ble|Mr|Mrs|Ms)\b\.?\s*",
-    re.IGNORECASE,
+# Name canonicalisation moved to `names.py`, which knows nothing about a
+# legislature. Re-exported here because callers and tests import it from this
+# module, and because an entity store is where a reader looks for it.
+from .names import (  # noqa: F401  (re-export)
+    HONORIFICS,
+    normalize_name,
+    slugify,
 )
-
-
-def normalize_name(name: str) -> str:
-    """Stable canonical form for matching.
-
-    1. Comma-reversal: 'Joshi, Shri P.V.' -> 'Shri P.V. Joshi'.
-    2. Strip honorifics (Shri, Smt, Dr, ...).
-    3. Lowercase, drop punctuation, collapse whitespace.
-    4. Sort tokens alphabetically — order-independent canonical form,
-       so 'P V Joshi' and 'Joshi P V' collapse to the same key.
-    """
-    if not name:
-        return ""
-    s = name
-    if "," in s:
-        parts = [p.strip() for p in s.split(",", 1)]
-        if len(parts) == 2:
-            s = f"{parts[1]} {parts[0]}"
-    s = _HONORIFIC_RE.sub("", s)
-    s = s.lower().replace(".", " ")
-    s = re.sub(r"[^a-z0-9\s]", " ", s)
-    words = sorted(w for w in s.split() if w)
-    return " ".join(words)
-
-
-def slugify(name: str) -> str:
-    """URL-safe slug for entity_id suffix. Word order preserved (not sorted)."""
-    s = name.lower().replace(".", " ")
-    s = _HONORIFIC_RE.sub("", s)
-    s = re.sub(r"[^a-z0-9\s]", " ", s)
-    return "_".join(w for w in s.split() if w)
 
 
 def make_entity_id(canonical_name: str, *context: str) -> str:

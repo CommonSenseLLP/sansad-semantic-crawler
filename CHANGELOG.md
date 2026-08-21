@@ -11,6 +11,28 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+### Added
+
+- **`names.py` — canonical forms for a personal name, with no domain
+  knowledge.** `normalize_name` and `slugify` move here from `entities.py`.
+  Both are re-exported from `entities`, so no caller changes.
+
+  **The part that matters is the token sort.** Indian records write a name in
+  whatever order the clerk chose. `P V Joshi` and `Joshi P V` are one person.
+  A normaliser that only lowercases and strips punctuation returns two keys,
+  and a join then drops the row. Sorting the tokens collapses both to one key.
+
+  Four separate implementations of this function exist across sibling repos,
+  and one repo carries it twice. Three of the four stop at lowercase and
+  punctuation. This one already had the sort, buried in a module about
+  legislators, where nothing generic could reach it.
+
+  `extra_honorifics` lets a caller extend the list rather than copy the
+  function. The shipped list is South Asian, not parliamentary.
+
+  First step under the rule that domain logic stays in a product repo and a
+  standardisable method belongs here.
+
 ### Fixed
 
 - **`crawl-bills` and `crawl-debates` never warned that they are deprecated
