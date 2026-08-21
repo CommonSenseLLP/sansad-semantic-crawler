@@ -11,7 +11,7 @@ question or answer field at all. The flag was true everywhere, so it meant
 nothing anywhere. ``split_state`` exists so the
 flag can only ever be as true as the fields under it.
 
-Ported from ``zero-hour`` under REQ-0059. Nothing here knows what a ministry is.
+Ported from a sibling repo under REQ-0059. Nothing here knows what a ministry is.
 """
 
 from __future__ import annotations

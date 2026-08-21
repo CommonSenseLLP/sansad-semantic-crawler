@@ -50,8 +50,8 @@ can act on is this repo's whole job.
 | Acquisition — HTTP, crawling, scraping, provenance manifests | `commoner-probe` (hard dependency) | This repo holds **zero** acquisition code. A missing capability is a commoner-probe issue. Check its CHANGELOG before assuming a gap, then file a cross-repo REQ. |
 | Chunking, embeddings, FTS/vector search, MCP retrieval serving | `partial-recall` | Do not build a second search stack. The org paid for that lesson once. |
 | Budget, RBI, fiscal, NHA/OOPE tooling | `public-finance` | — |
-| Member-facing products — question kits, briefs, dossiers delivered to MPs/MLAs | `zero-hour` | This repo produces the analysis those products consume. |
-| Public static surfaces / campaign sites | `theright2read`, `academiaindia`, `sevent4` | They consume generated data. |
+| Member-facing products. Question kits, briefs, dossiers delivered to MPs/MLAs | the member-products repo | This repo produces the analysis those products consume. |
+| Public static surfaces and campaign sites | the campaign-site repos | They consume generated data. |
 | **Publication.** Op-eds, articles, pamphlets, public prose | the relevant publication surface | See below. |
 
 ## Publication is not this repo's job
@@ -85,8 +85,8 @@ under the same rule.
 
 ## Public package discipline
 
-This is a published package with downstream consumers (`theright2read`,
-`academiaindia`, `zero-hour`, `public-finance`).
+This is a published package. Several sibling repos consume it, and it is
+headed for PyPI, so its public surface has readers beyond this organisation.
 
 Versioning, release and pinning rules are set organisation-wide, not here.
 
@@ -99,9 +99,9 @@ This repo's own data contract:
 
 ## `REJECTED` — the adjudication (2026-08-17)
 
-`zero-hour` counts `REJECTED` as a dodge. This repo counts it as substantive.
-`theright2read` had copied the dodge reading and inflated its evasion rate
-(REQ-0009). REQ-0057 blocks on the verdict.
+One consuming repo counts `REJECTED` as a dodge. This repo counts it as
+substantive. A second consumer copied the dodge reading and inflated its
+evasion rate (REQ-0009). REQ-0057 blocks on the verdict.
 
 **Verdict: `REJECTED` stays substantive. The label is nonetheless wrong, and
 the wrongness is narrower than either repo's reading.**
@@ -132,15 +132,15 @@ The confidence was set on act 1 and then applied to act 2.
 1. Measure the share of `REJECTED` rows that fire only on the `does not arise`
    patterns. **Not measured.** `data/` is down under the m1-storage incident,
    so no count exists in this repo today.
-2. Read the 20 records where `zero-hour` says `FACTUAL_DISCLOSURE` and this
+2. Read the 20 records where the other classifier says `FACTUAL_DISCLOSURE` and this
    repo says `SUBSTITUTED` (REQ-0057). Nobody has read them.
 3. Ship the split as a **minor** release with a changelog entry. It moves a
-   published rate for `theright2read` and `academiaindia`.
+   published rate for two consuming repos.
 
 **Until step 1 runs, do not change the classification.** A rate that moves for
 an unmeasured reason is not an improvement.
 
-**What `zero-hour` may do now:** stop treating the whole label as a dodge. It
+**What the other classifier may do now:** stop treating the whole label as a dodge. It
 is right about `does not arise` and wrong about the rest.
 
 ## Non-negotiable

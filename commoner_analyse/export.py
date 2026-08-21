@@ -18,14 +18,18 @@ def now() -> str:
 
 
 def build_glossary() -> dict[str, Any]:
-    """The discourse label taxonomy as data, for consumers across a licensing
-    boundary that can't import this package directly (e.g. ``zero-hour``,
-    which reads generated JSONL/JS but never imports ``commoner_analyse``).
+    """The discourse label taxonomy as data, for a consumer that reads the
+    generated JSONL or JS and never imports this package.
 
-    Exporting this as data — rather than each consumer hand-copying
-    ``DISCOURSE_LABEL_DESCRIPTIONS`` into their own source — is how a
-    consumer's copy stays in sync with the taxonomy as labels are added,
-    renamed, or retired here.
+    A consumer may stay at arm's length for several reasons. It may run in
+    another language. It may compose this package's CLI rather than depend on
+    it. Until 2026-08-20 a noncommercial licence also forbade some siblings
+    from linking it at all.
+
+    Exporting the taxonomy as data beats each consumer hand-copying
+    ``DISCOURSE_LABEL_DESCRIPTIONS`` into its own source. The copy then stays
+    in sync as labels are added, renamed, or retired here. One such copy
+    drifted before this existed, and it inflated a published evasion rate.
     """
     return {
         "generatedAt": now(),

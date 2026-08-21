@@ -410,7 +410,7 @@ class NewRegexV2PatternsTest(unittest.TestCase):
     def test_participial_state_subject_fires_federal_deflection(self):
         """REQ-0072. Indian legislative English drops the copula in this exact
         construction, and the pattern required it. Verbatim from the request,
-        source key ``LS|S|734|2000-05-17``, Minister of Agriculture. zero-hour
+        source key ``LS|S|734|2000-05-17``, Minister of Agriculture. A sibling repo
         measured 2,982 answers using this form and invisible to the pattern,
         of which 518 carried no label from any tier at all.
         """

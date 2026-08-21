@@ -5,7 +5,7 @@ label families. Average such a tier together with a tier that reads the whole
 answer, and the one-sided tier's share moves the rate by however many rows it
 contributed. The rate stays plausible. Nothing raises.
 
-Measured in ``zero-hour``, which found the defect and filed REQ-0058: pooling a
+Measured in a sibling repo, which found the defect and filed REQ-0058: pooling a
 table-detector tier with a reading tier under-reported dodging by 11.3 points,
 12.0% against 23.2%. A cockpit, a PM profile and a report all carried the wrong
 number at once.
