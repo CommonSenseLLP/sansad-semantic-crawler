@@ -60,6 +60,34 @@ commoner-analyse analyse-ministry     # Aggregate evasion patterns
 commoner-analyse mp-summary           # Aggregate MP assertion rates
 ```
 
+## Commands that assume no legislature
+
+These five work on any corpus. They exist because the capability sat here,
+importable only, while other projects rebuilt it by hand.
+
+```bash
+# One canonical key per name. The token sort makes it order-independent, so
+# "P V Joshi" and "Joshi P V" collapse and a join stops dropping rows.
+commoner-analyse normalize-names --file names.txt
+commoner-analyse normalize-names --file names.txt --slug
+
+# Refuse a pooled statistic that falls outside its stratum range. Exits
+# non-zero, so a pipeline stops instead of publishing.
+commoner-analyse check-pooling --pooled 0.047 --strata 0.44,0.68
+
+# Refuse a per-unit rate computed over rows that are not units.
+commoner-analyse check-units rows.jsonl --unit-key shrid2
+
+# Name any staged record whose split flag its own fields do not support.
+commoner-analyse check-claims staging.jsonl
+
+# Reconcile labelling fragments by key, never by position.
+commoner-analyse merge-fragments f1.jsonl f2.jsonl --target target.jsonl
+```
+
+Each check exits non-zero on a refusal. A gate that only prints is a gate a
+pipeline ignores.
+
 ## The three analytical layers
 
 They stay separate because they answer different questions.

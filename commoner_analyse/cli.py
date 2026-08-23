@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import json
+import math
+import sys
 from pathlib import Path
 
 from .acquisition_compat import warn_deprecated_acquisition
@@ -376,6 +379,133 @@ def neva_crawl_cmd(args: argparse.Namespace) -> None:
         fetch_member_details=not args.no_member_details,
         sessions_limit=args.sessions_limit,
     )
+
+
+# ---------------------------------------------------------------------------
+# Domain-free commands.
+#
+# Everything above this line assumes a legislature. These five do not. They
+# exist because an audit found the capability sitting here, importable only,
+# while sibling repos rebuilt it: ten files across five repos strip honorifics
+# by hand, and six of seven files that compute a grouped rate carry no
+# small-denominator guard at all.
+#
+# A capability nobody can reach from a shell is a capability nobody uses.
+# ---------------------------------------------------------------------------
+
+
+def _finite(text: str) -> float:
+    """Return the float in `text`, refusing nan and the infinities.
+
+    A gate that cannot evaluate its input must not report ok. `nan` compares
+    false against both ends of a range, so it passes every bound check, and
+    `json.dumps` writes it as bare `NaN`, which no JSON parser must accept.
+    """
+    value = float(text)
+    if not math.isfinite(value):
+        raise ValueError(f"{text!r} is not a finite number")
+    return value
+
+
+def _read_gate_rows(path: Path) -> list[dict]:
+    """Read a JSONL gate input, refusing anything the gate cannot evaluate.
+
+    `textparse.read_jsonl` answers an absent file with an empty list and drops
+    a malformed line without a word. Both are right for a corpus reader and
+    wrong for a gate: a typo in the path then reads as a clean corpus, and the
+    one overclaiming record can be the line that failed to parse.
+    """
+    if not path.exists():
+        raise SystemExit(f"no such file: {path}")
+    rows: list[dict] = []
+    with path.open(encoding="utf-8") as handle:
+        for number, line in enumerate(handle, start=1):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise SystemExit(f"{path}:{number}: malformed JSON: {error}")
+            if not isinstance(row, dict):
+                raise SystemExit(f"{path}:{number}: line is not a JSON object")
+            rows.append(row)
+    if not rows:
+        raise SystemExit(f"{path}: no rows to check")
+    return rows
+
+
+def normalize_names_cmd(args: argparse.Namespace) -> None:
+    from .names import normalize_name, slugify
+
+    extra = _split_csv(args.extra_honorifics) or None
+    render = slugify if args.slug else normalize_name
+    source = Path(args.file).read_text().splitlines() if args.file else sys.stdin.read().splitlines()
+    for line in source:
+        if line.strip():
+            print(render(line, extra_honorifics=extra))
+
+
+def check_pooling_cmd(args: argparse.Namespace) -> None:
+    from .inference_gates import build_pooling_verdict
+
+    for flag, value in (("--pooled", args.pooled), ("--tolerance", args.tolerance)):
+        if not math.isfinite(value):
+            raise SystemExit(f"check-pooling: {flag} is not a finite number")
+    try:
+        strata = [_finite(x) for x in _split_csv(args.strata) or []]
+    except ValueError as error:
+        raise SystemExit(f"check-pooling: --strata: {error}")
+    if not strata:
+        raise SystemExit("check-pooling: --strata names no value")
+    verdict = build_pooling_verdict(args.pooled, strata, tolerance=args.tolerance)
+    print(json.dumps({"ok": verdict.ok, "reason": verdict.reason, **verdict.detail}, indent=2))
+    if not verdict.ok:
+        raise SystemExit(1)
+
+
+def check_units_cmd(args: argparse.Namespace) -> None:
+    from .inference_gates import build_unit_verdict
+
+    verdict = build_unit_verdict(_read_gate_rows(Path(args.file)), unit_key=args.unit_key)
+    print(json.dumps({"ok": verdict.ok, "reason": verdict.reason, **verdict.detail}, indent=2))
+    if not verdict.ok:
+        raise SystemExit(1)
+
+
+def check_claims_cmd(args: argparse.Namespace) -> None:
+    from .staging import unsupported_claims
+
+    bad = unsupported_claims(_read_gate_rows(Path(args.file)))
+    print(json.dumps({"ok": not bad, "unsupported": bad, "count": len(bad)}, indent=2))
+    if bad:
+        raise SystemExit(1)
+
+
+def merge_fragments_cmd(args: argparse.Namespace) -> None:
+    from .fragment_merge import collect, reconcile
+    from .textparse import read_jsonl
+
+    fragments = [read_jsonl(Path(f)) for f in args.fragments]
+    rows, repeats = collect(fragments)
+    target = {r["key"]: r.get("letters", []) for r in read_jsonl(Path(args.target))}
+    result = reconcile(target, rows)
+    print(result.summary(), file=sys.stderr)
+    if repeats:
+        print(f"repeated keys: {json.dumps(repeats)}", file=sys.stderr)
+    payload = {
+        "accepted": result.accepted,
+        "unlabelled": list(result.unlabelled),
+        "partial": {k: list(v) for k, v in result.partial.items()},
+        "invented": {k: list(v) for k, v in result.invented.items()},
+        "conflicted": list(result.conflicted),
+        "orphan": list(result.orphan),
+        "redo": list(result.redo),
+        "repeatedKeys": repeats,
+    }
+    if args.out:
+        Path(args.out).write_text(json.dumps(payload, indent=2))
+    else:
+        print(json.dumps(payload, indent=2))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -760,6 +890,75 @@ def build_parser() -> argparse.ArgumentParser:
     neva.add_argument("--no-member-details", action="store_true", help="Skip per-member detail page fetches")
     neva.add_argument("--sessions-limit", type=int, help="Smoke-test: stop after N sessions per assembly")
     neva.set_defaults(func=neva_crawl_cmd)
+
+    # --- domain-free commands (see the block above the handlers) ---
+
+    nn = sub.add_parser(
+        "normalize-names",
+        help="Canonical name keys, one per line, from a file or stdin",
+        description=(
+            "Reads one name per line and writes its canonical form. The token "
+            "sort makes the key order-independent, so 'P V Joshi' and "
+            "'Joshi P V' collapse to one key and a join stops dropping rows."
+        ),
+    )
+    nn.add_argument("--file", help="Input file, one name per line (default: stdin)")
+    nn.add_argument("--slug", action="store_true", help="Emit a URL-safe slug, preserving word order")
+    nn.add_argument("--extra-honorifics", help="Comma-separated extra honorifics to strip")
+    nn.set_defaults(func=normalize_names_cmd)
+
+    cp = sub.add_parser(
+        "check-pooling",
+        help="Refuse a pooled statistic that falls outside its stratum range",
+        description=(
+            "Inference gate 2. If the pooled figure sits outside the range of "
+            "the stratum figures, the pooling is invalid. Exits non-zero on a "
+            "refusal, so a pipeline stops instead of publishing."
+        ),
+    )
+    cp.add_argument("--pooled", type=float, required=True)
+    cp.add_argument("--strata", required=True, help="Comma-separated stratum values")
+    cp.add_argument("--tolerance", type=float, default=0.0, help="Widen the range for rounding only")
+    cp.set_defaults(func=check_pooling_cmd)
+
+    cu = sub.add_parser(
+        "check-units",
+        help="Refuse a per-unit rate computed over rows that are not units",
+        description=(
+            "Inference gate 4. Reports rows, distinct units, multi-part units "
+            "and unattributed rows. Exits non-zero on a refusal."
+        ),
+    )
+    cu.add_argument("file", help="JSONL file, one row per line")
+    cu.add_argument("--unit-key", required=True, help="Field naming the unit, e.g. 'shrid2'")
+    cu.set_defaults(func=check_units_cmd)
+
+    ck = sub.add_parser(
+        "check-claims",
+        help="Name any staged record whose split flag its fields do not support",
+        description=(
+            "Run against a staging file before reading it. A file that claims "
+            "a split it cannot show is worse than one admitting it has only "
+            "the full text. Exits non-zero when any record overclaims."
+        ),
+    )
+    ck.add_argument("file", help="Staging JSONL file")
+    ck.set_defaults(func=check_claims_cmd)
+
+    mf = sub.add_parser(
+        "merge-fragments",
+        help="Reconcile labelling fragments by key, never by position",
+        description=(
+            "Merges fragment files a fleet of workers wrote back. A "
+            "disagreeing repeat becomes a conflict rather than letting the "
+            "last file read win. Sorts every target key into accepted, "
+            "partial, invented, conflicted, orphan or unlabelled."
+        ),
+    )
+    mf.add_argument("fragments", nargs="+", help="Fragment JSONL files")
+    mf.add_argument("--target", required=True, help="JSONL of {key, letters[]} recomputed from the corpus")
+    mf.add_argument("--out", help="Write the reconciliation here (default: stdout)")
+    mf.set_defaults(func=merge_fragments_cmd)
 
     return parser
 
