@@ -88,6 +88,15 @@ researchers who pin a tag and want to know what they are pinning to.
 
   The four compat tests move with it, because they patched the old paths.
 
+- **Pin `commoner-probe` at `==0.17.0`.** The previous pin was `==0.16.0`.
+  0.17.0 adds a `user_agent` field to the `academic-jobs` institution
+  registry, and it builds the `Fetcher` per institution rather than per run.
+
+  **Nothing in that release touches this package.** `academic-jobs` is an
+  acquisition surface, and this package owns no acquisition code. The suite
+  runs with no new warning. The bump keeps the pin current rather than
+  buying a fix.
+
 ## [2.7.1] — 2026-08-20
 
 ### Fixed
