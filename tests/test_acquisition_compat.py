@@ -257,3 +257,86 @@ def test_every_generated_command_uses_flags_commoner_probe_accepts():
         accepted = set(re.findall(r"--[a-z-]+", helptext))
         emitted = {token for token in command if token.startswith("--")}
         assert not emitted - accepted, (name, sorted(emitted - accepted))
+
+
+# The replacement command must not quietly change the operation the caller
+# asked for. Dropping --dry-run turns a planning run into a live acquisition.
+# Codex found this on crawl-debates, where five flags went missing. The test
+# below walks every deprecated command, so the next one cannot go missing.
+
+# Each entry names a flag the builder deliberately does not emit, and why.
+# deprecation_message() prints a note for each of these instead.
+FLAGS_WITHOUT_A_PROBE_EQUIVALENT = {
+    "crawl": {"classifier"},
+    "crawl-committees": {"classifier", "crawl_composition"},
+    "neva-crawl": {"state_code"},          # probe spells it --state
+    "crawl-bills": {"reset"},
+    "crawl-debates": {"reset"},
+}
+
+
+def test_no_deprecated_command_drops_a_flag_from_its_replacement():
+    from commoner_analyse.cli import build_parser
+
+    parser = build_parser()
+    subparsers = [
+        action
+        for action in parser._actions
+        if isinstance(action, argparse._SubParsersAction)
+    ][0]
+
+    for name, exempt in FLAGS_WITHOUT_A_PROBE_EQUIVALENT.items():
+        subparser = subparsers.choices[name]
+        dests = {
+            action.dest
+            for action in subparser._actions
+            if action.dest not in {"help", "func", "command"}
+        }
+        args = argparse.Namespace(**{dest: "X" for dest in dests})
+        command = build_commoner_probe_command(name, args)
+        emitted = {token for token in command if token.startswith("--")}
+        wanted = {"--" + dest.replace("_", "-") for dest in dests - exempt}
+        assert not wanted - emitted, (name, sorted(wanted - emitted))
+
+
+def test_a_debate_dry_run_stays_a_dry_run_in_the_replacement():
+    args = argparse.Namespace(
+        out="o", loksabhas="18", sessions=None, from_date="2024-01-01",
+        to_date="2024-03-01", max_records=5, download=True, api_url="http://x",
+        sleep=1.0, reset=False, dry_run=True,
+    )
+
+    command = build_commoner_probe_command("crawl-debates", args)
+
+    assert command == [
+        "commoner-probe",
+        "debates",
+        "--out",
+        "o",
+        "--loksabhas",
+        "18",
+        "--from-date",
+        "2024-01-01",
+        "--to-date",
+        "2024-03-01",
+        "--max-records",
+        "5",
+        "--api-url",
+        "http://x",
+        "--sleep",
+        "1.0",
+        "--download",
+        "--dry-run",
+    ]
+
+
+def test_a_debate_run_that_asks_for_nothing_extra_stays_short():
+    args = argparse.Namespace(
+        out="o", loksabhas="18", sessions=None, from_date=None, to_date=None,
+        max_records=None, download=False, api_url=None, sleep=0.5,
+        reset=False, dry_run=False,
+    )
+
+    command = build_commoner_probe_command("crawl-debates", args)
+
+    assert command == ["commoner-probe", "debates", "--out", "o", "--loksabhas", "18", "--sleep", "0.5"]

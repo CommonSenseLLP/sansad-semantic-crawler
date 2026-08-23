@@ -83,8 +83,13 @@ def build_commoner_probe_command(command_name: str, args: argparse.Namespace) ->
         _append_option(command, "--out", _value(args, "out"))
         _append_option(command, "--loksabhas", _value(args, "loksabhas"))
         _append_option(command, "--sessions", _value(args, "sessions"))
+        _append_option(command, "--from-date", _value(args, "from_date"))
+        _append_option(command, "--to-date", _value(args, "to_date"))
         _append_option(command, "--max-records", _value(args, "max_records"))
+        _append_option(command, "--api-url", _value(args, "api_url"))
         _append_option(command, "--sleep", _value(args, "sleep"))
+        _append_flag(command, "--download", bool(_value(args, "download")))
+        _append_flag(command, "--dry-run", bool(_value(args, "dry_run")))
         return command
 
     raise ValueError(f"unknown acquisition command: {command_name}")
