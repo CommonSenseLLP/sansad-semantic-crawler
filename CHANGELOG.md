@@ -11,6 +11,8 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.8.0] — 2026-08-23
+
 ### Added
 
 - **Five CLI commands that assume no legislature.** `normalize-names`,
@@ -38,8 +40,6 @@ researchers who pin a tag and want to know what they are pinning to.
   `check-units` and `check-claims` refuse an absent file, a malformed line and
   a file with no rows. The corpus reader answers all three with an empty list,
   which each command then reported as a clean pass.
-
-### Added
 
 - **`names.py` — canonical forms for a personal name, with no domain
   knowledge.** `normalize_name` and `slugify` move here from `entities.py`.
@@ -114,8 +114,6 @@ researchers who pin a tag and want to know what they are pinning to.
 - `build_glossary`'s docstring described a licensing firewall that the AGPL
   relicence removed on 2026-08-20. It now gives the real reasons a consumer
   stays at arm's length and records the licence as history.
-
-### Changed
 
 - **Import three `commoner-probe` modules under their current names.**
   `commoner_probe.committees` becomes `commoner_probe.committee_report_api`,
@@ -595,7 +593,6 @@ resetting to `0.1.0` — this repo already has real historical tags at every
 ### Added
 
 - **v1.0.0 Synthesis:** Technical completion of ATR Linkage Engine and functional instrumentation of Constitutional Audit Pipeline.
-
 
 ### What ships: The Audit Pipeline
 
