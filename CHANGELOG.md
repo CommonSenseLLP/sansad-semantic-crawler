@@ -51,6 +51,21 @@ researchers who pin a tag and want to know what they are pinning to.
   command, builds its replacement, and checks each emitted flag against the
   installed probe's own `--help`. It fails when probe renames or drops a flag.
 
+- **`crawl-debates` dropped five flags from its replacement command.**
+  `--from-date`, `--to-date`, `--api-url`, `--download` and `--dry-run`
+  reached the local crawler and never reached the printed replacement.
+
+  **The worst case is `--dry-run`.** A caller who pasted the advertised
+  command turned a planning run into a live acquisition. `--from-date` and
+  `--to-date` widened the crawl instead. `commoner-probe debates` accepts all
+  five under the same names, so each one now forwards.
+
+  The old check only proved that an emitted flag is one probe accepts. It
+  could not see a flag that was never emitted. A second check now walks every
+  deprecated command and fails on any flag the replacement drops. The four
+  flags with no probe equivalent stay listed, and the message still explains
+  each one.
+
 ### Changed
 
 - **No private sibling repository is named anywhere in this repository now.**
