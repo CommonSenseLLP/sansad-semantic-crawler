@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -393,6 +394,46 @@ def neva_crawl_cmd(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _finite(text: str) -> float:
+    """Return the float in `text`, refusing nan and the infinities.
+
+    A gate that cannot evaluate its input must not report ok. `nan` compares
+    false against both ends of a range, so it passes every bound check, and
+    `json.dumps` writes it as bare `NaN`, which no JSON parser must accept.
+    """
+    value = float(text)
+    if not math.isfinite(value):
+        raise ValueError(f"{text!r} is not a finite number")
+    return value
+
+
+def _read_gate_rows(path: Path) -> list[dict]:
+    """Read a JSONL gate input, refusing anything the gate cannot evaluate.
+
+    `textparse.read_jsonl` answers an absent file with an empty list and drops
+    a malformed line without a word. Both are right for a corpus reader and
+    wrong for a gate: a typo in the path then reads as a clean corpus, and the
+    one overclaiming record can be the line that failed to parse.
+    """
+    if not path.exists():
+        raise SystemExit(f"no such file: {path}")
+    rows: list[dict] = []
+    with path.open(encoding="utf-8") as handle:
+        for number, line in enumerate(handle, start=1):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise SystemExit(f"{path}:{number}: malformed JSON: {error}")
+            if not isinstance(row, dict):
+                raise SystemExit(f"{path}:{number}: line is not a JSON object")
+            rows.append(row)
+    if not rows:
+        raise SystemExit(f"{path}: no rows to check")
+    return rows
+
+
 def normalize_names_cmd(args: argparse.Namespace) -> None:
     from .names import normalize_name, slugify
 
@@ -407,7 +448,15 @@ def normalize_names_cmd(args: argparse.Namespace) -> None:
 def check_pooling_cmd(args: argparse.Namespace) -> None:
     from .inference_gates import build_pooling_verdict
 
-    strata = [float(x) for x in _split_csv(args.strata)]
+    for flag, value in (("--pooled", args.pooled), ("--tolerance", args.tolerance)):
+        if not math.isfinite(value):
+            raise SystemExit(f"check-pooling: {flag} is not a finite number")
+    try:
+        strata = [_finite(x) for x in _split_csv(args.strata) or []]
+    except ValueError as error:
+        raise SystemExit(f"check-pooling: --strata: {error}")
+    if not strata:
+        raise SystemExit("check-pooling: --strata names no value")
     verdict = build_pooling_verdict(args.pooled, strata, tolerance=args.tolerance)
     print(json.dumps({"ok": verdict.ok, "reason": verdict.reason, **verdict.detail}, indent=2))
     if not verdict.ok:
@@ -416,9 +465,8 @@ def check_pooling_cmd(args: argparse.Namespace) -> None:
 
 def check_units_cmd(args: argparse.Namespace) -> None:
     from .inference_gates import build_unit_verdict
-    from .textparse import read_jsonl
 
-    verdict = build_unit_verdict(read_jsonl(Path(args.file)), unit_key=args.unit_key)
+    verdict = build_unit_verdict(_read_gate_rows(Path(args.file)), unit_key=args.unit_key)
     print(json.dumps({"ok": verdict.ok, "reason": verdict.reason, **verdict.detail}, indent=2))
     if not verdict.ok:
         raise SystemExit(1)
@@ -426,9 +474,8 @@ def check_units_cmd(args: argparse.Namespace) -> None:
 
 def check_claims_cmd(args: argparse.Namespace) -> None:
     from .staging import unsupported_claims
-    from .textparse import read_jsonl
 
-    bad = unsupported_claims(read_jsonl(Path(args.file)))
+    bad = unsupported_claims(_read_gate_rows(Path(args.file)))
     print(json.dumps({"ok": not bad, "unsupported": bad, "count": len(bad)}, indent=2))
     if bad:
         raise SystemExit(1)

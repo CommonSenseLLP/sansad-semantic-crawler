@@ -28,6 +28,17 @@ researchers who pin a tag and want to know what they are pinning to.
   **Each check exits non-zero on a refusal.** A gate that only prints is a gate
   a pipeline ignores.
 
+  **Each check also refuses input it cannot evaluate.** A gate that reports ok
+  when it cannot evaluate is worse than no gate.
+
+  `check-pooling` requires a finite pooled figure, finite strata and a finite
+  tolerance. A `nan` compares false against both ends of a range, so it passed
+  every bound check and printed bare `NaN` into the JSON.
+
+  `check-units` and `check-claims` refuse an absent file, a malformed line and
+  a file with no rows. The corpus reader answers all three with an empty list,
+  which each command then reported as a clean pass.
+
 ### Added
 
 - **`names.py` — canonical forms for a personal name, with no domain

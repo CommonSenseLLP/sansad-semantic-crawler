@@ -12,7 +12,7 @@ import io
 import json
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from commoner_analyse.cli import build_parser
@@ -92,6 +92,94 @@ class GateExitCodeTests(unittest.TestCase):
             out, code = _run(["check-claims", path])
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(out)["unsupported"], ["liar"])
+
+
+class GateRefusesUnusableInputTests(unittest.TestCase):
+    """A gate that reports ok when it cannot evaluate is worse than no gate.
+
+    Both defects below returned `ok: true` and exit 0. Each is a silent pass,
+    which a pipeline reads as a clean corpus and publishes.
+    """
+
+    @staticmethod
+    def _run_gate(argv: list[str]) -> tuple[str, str, int]:
+        """Mirror what a shell sees: stdout, stderr, and the exit code.
+
+        Python prints a string `SystemExit` to stderr and exits 1.
+        """
+        args = build_parser().parse_args(argv)
+        out, err = io.StringIO(), io.StringIO()
+        code = 0
+        try:
+            with redirect_stdout(out), redirect_stderr(err):
+                args.func(args)
+        except SystemExit as exit_:
+            if isinstance(exit_.code, str):
+                print(exit_.code, file=err)
+                code = 1
+            else:
+                code = int(exit_.code or 0)
+        return out.getvalue(), err.getvalue(), code
+
+    def test_a_nan_pooled_value_does_not_pass_the_range_check(self):
+        out, err, code = self._run_gate(["check-pooling", "--pooled", "nan", "--strata", "0.4,0.9"])
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("--pooled", err)
+        self.assertNotIn("NaN", out)
+
+    def test_a_nan_tolerance_does_not_pass_the_range_check(self):
+        _, err, code = self._run_gate(
+            ["check-pooling", "--pooled", "0.5", "--strata", "0.4,0.9", "--tolerance", "nan"]
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("--tolerance", err)
+
+    def test_a_nan_stratum_does_not_pass_the_range_check(self):
+        _, err, code = self._run_gate(["check-pooling", "--pooled", "0.5", "--strata", "0.4,nan"])
+        self.assertEqual(code, 1)
+        self.assertIn("--strata", err)
+
+    def test_an_infinite_pooled_value_is_refused_too(self):
+        _, err, code = self._run_gate(["check-pooling", "--pooled", "inf", "--strata", "0.4,0.9"])
+        self.assertEqual(code, 1)
+        self.assertIn("--pooled", err)
+
+    def test_an_absent_file_is_not_a_clean_corpus(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = str(Path(tmp) / "missing.jsonl")
+            out, err, code = self._run_gate(["check-units", missing, "--unit-key", "k"])
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("no such file", err)
+
+    def test_a_malformed_line_names_its_line_number(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "u.jsonl", '{"k":"a"}\n{"k":\n{"k":"b"}\n')
+            _, err, code = self._run_gate(["check-units", path, "--unit-key", "k"])
+        self.assertEqual(code, 1)
+        self.assertIn(":2:", err)
+
+    def test_check_claims_cannot_miss_the_overclaiming_record_to_a_parse_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "s.jsonl", '{"key":"ok","reply_split_ok":true,"question":"q","answer":"a"}\n{oops\n')
+            _, err, code = self._run_gate(["check-claims", path])
+        self.assertEqual(code, 1)
+        self.assertIn("malformed JSON", err)
+
+    def test_an_empty_file_is_not_a_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "u.jsonl", "\n\n")
+            _, err, code = self._run_gate(["check-units", path, "--unit-key", "k"])
+        self.assertEqual(code, 1)
+        self.assertIn("no rows", err)
+
+    def test_a_json_line_that_is_not_an_object_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write(tmp, "u.jsonl", '{"k":"a"}\n[1,2]\n')
+            _, err, code = self._run_gate(["check-units", path, "--unit-key", "k"])
+        self.assertEqual(code, 1)
+        self.assertIn("not a JSON object", err)
 
 
 class MergeFragmentsTests(unittest.TestCase):
