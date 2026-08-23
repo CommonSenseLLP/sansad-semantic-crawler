@@ -131,14 +131,23 @@ researchers who pin a tag and want to know what they are pinning to.
 
   The four compat tests move with it, because they patched the old paths.
 
-- **Pin `commoner-probe` at `==0.17.0`.** The previous pin was `==0.16.0`.
-  0.17.0 adds a `user_agent` field to the `academic-jobs` institution
-  registry, and it builds the `Fetcher` per institution rather than per run.
+- **Pin `commoner-probe` at `==0.18.0`.** The previous pin was `==0.16.0`.
+  The pin passed through `0.17.0` on the way, so this entry covers both.
 
-  **Nothing in that release touches this package.** `academic-jobs` is an
-  acquisition surface, and this package owns no acquisition code. The suite
-  runs with no new warning. The bump keeps the pin current rather than
-  buying a fix.
+  0.17.0 adds a `user_agent` field to the `academic-jobs` institution
+  registry. It also builds the `Fetcher` per institution rather than per run.
+  0.18.0 adds `closing_date_status` to `academic_job_posting`, and it fixes
+  four deadline-reading defects.
+
+  **Nothing in either release touches this package.** Both are `academic-jobs`
+  work, and this package owns no acquisition code. This package imports eight
+  probe modules: `answers`, `assembly_portal`, `bills`,
+  `committee_report_api`, `debates`, `members`, `parliament_qa_api` and
+  `http_client`. None of them changed.
+
+  **A consuming repository asked for this bump.** An exact pin means a
+  consumer cannot take a newer probe than the one this package declares. The
+  suite runs with no new warning.
 
 ## [2.7.1] — 2026-08-20
 
