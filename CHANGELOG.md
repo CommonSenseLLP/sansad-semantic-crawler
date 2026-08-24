@@ -11,6 +11,33 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.8.1] — 2026-08-23
+
+### Changed
+
+- **`commoner-probe` pin moves `0.18.0` to `0.19.0`.** No surface of this
+  package changes. The bump exists so downstream consumers that pin
+  `commoner-probe` directly can take `0.19.0` without hitting
+  `ResolutionImpossible` against this package's exact pin.
+
+  `0.19.0` adds `document_class` to academia manifest records and gives
+  `parsers/generic.py` a document classifier. This package imports eight probe
+  modules — `answers`, `assembly_portal`, `bills`, `committee_report_api`,
+  `debates`, `members`, `parliament_qa_api` and `http_client` — and none of
+  them is `academia`. It never calls `find_deadline`. So nothing in `0.19.0`
+  reaches any number this package publishes.
+
+  Verified rather than assumed: 544 passed and 1 skipped against `0.19.0`
+  installed from PyPI, matching the `2.8.0` baseline exactly.
+
+  **Requested by academiaindia**, which pins `commoner-probe` directly and was
+  blocked from `0.19.0` by this package's `==0.18.0`. This is the third such
+  block in one day. The structural question — whether a consumer should pin
+  probe directly at all, or whether this package should widen `==` to a range
+  — is recorded here and not decided here.
+
+- `SCOPE.md` states the probe pin and now names `0.19.0`.
+
 ## [2.8.0] — 2026-08-23
 
 ### Added

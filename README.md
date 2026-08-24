@@ -16,20 +16,20 @@ and audits for researchers.
 Not on PyPI yet. Install from a release tag:
 
 ```bash
-pip install "commoner-analyse @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.8.0"
+pip install "commoner-analyse @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.8.1"
 ```
 
 Extras are `[http]`, `[pdf]`, `[embeddings]`, `[llm]` and `[all]`. Add one
 in the usual brackets:
 
 ```bash
-pip install "commoner-analyse[pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.8.0"
+pip install "commoner-analyse[pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.8.1"
 ```
 
 Pin the same line in a project's `requirements.txt`:
 
 ```text
-commoner-analyse[http,pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.8.0
+commoner-analyse[http,pdf] @ git+https://github.com/CommonerLLP/commoner-analyse.git@v2.8.1
 ```
 
 `commoner-probe` is the one required third-party dependency. Beyond it the
