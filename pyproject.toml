@@ -1,6 +1,6 @@
 [project]
 name = "commoner-analyse"
-version = "2.8.0"
+version = "2.8.1"
 description = "Domain analysis adapters over commoner-probe's acquired public records: classification, aggregation, dossiers, and cross-referencing."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -25,7 +25,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Operating System :: OS Independent",
 ]
-dependencies = ["commoner-probe==0.18.0"]
+dependencies = ["commoner-probe==0.19.0"]
 
 [project.optional-dependencies]
 pdf = ["pdfminer.six>=20231228"]
