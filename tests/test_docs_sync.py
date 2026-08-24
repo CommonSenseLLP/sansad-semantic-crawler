@@ -21,6 +21,7 @@ README = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 CHANGELOG = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 PYPROJECT = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
 CITATION = (REPO_ROOT / "CITATION.cff").read_text(encoding="utf-8")
+SCOPE = (REPO_ROOT / "SCOPE.md").read_text(encoding="utf-8")
 
 
 class VersionSyncTests(unittest.TestCase):
@@ -71,6 +72,20 @@ class VersionSyncTests(unittest.TestCase):
         match = re.search(r'^\s*version: "([^"]+)"$', CITATION, re.MULTILINE)
         self.assertIsNotNone(match, "CITATION.cff has no version field")
         self.assertEqual(__version__, match.group(1))
+
+    def test_scope_documents_the_current_probe_pin(self):
+        """SCOPE.md names the probe pin, and the pin moves without it.
+
+        It read 0.16.0 while pyproject declared 0.18.0, because no test
+        looked at it. Codex flagged the same drift on an earlier pin. A
+        documented pin that disagrees with the declared one sends a reader
+        to the wrong probe release.
+        """
+        declared = re.search(r'commoner-probe==([0-9.]+)', PYPROJECT)
+        self.assertIsNotNone(declared, "pyproject declares no commoner-probe pin")
+        documented = re.search(r'`==`, currently `([0-9.]+)`', SCOPE)
+        self.assertIsNotNone(documented, "SCOPE.md no longer states the probe pin")
+        self.assertEqual(declared.group(1), documented.group(1))
 
     def test_changelog_has_current_version_entry(self):
         self.assertIn(f"## [{__version__}]", CHANGELOG)
