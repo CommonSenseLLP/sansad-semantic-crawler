@@ -11,6 +11,19 @@ researchers who pin a tag and want to know what they are pinning to.
 
 ## [Unreleased]
 
+## [2.8.2] — 2026-09-05
+
+### Changed
+
+- **`commoner-probe` pin moves `0.19.0` to `0.20.0`.** No surface of this
+  package changes. `0.20.0` adds a `koha` subcommand and manifest, and fixes
+  `unit_eligibility` extraction in `academia/parsers/iit_rolling.py` — this
+  package imports neither.
+
+  **Requested by academiaindia**, same shape as the `2.8.1` bump: it pins
+  `commoner-probe` directly and would be blocked from `0.20.0` by this
+  package's `==0.19.0`.
+
 ## [2.8.1] — 2026-08-23
 
 ### Changed
