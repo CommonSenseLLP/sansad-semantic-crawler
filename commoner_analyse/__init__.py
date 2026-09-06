@@ -3,4 +3,4 @@
 from .graph import build_graph
 
 __all__ = ["__version__", "build_graph"]
-__version__ = "2.8.1"
+__version__ = "2.8.2"
